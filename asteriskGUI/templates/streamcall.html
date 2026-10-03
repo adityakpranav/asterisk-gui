@@ -1,0 +1,281 @@
+
+		<!-- Main Container -->
+		<div id="monitor-view" class="workspace-view-panel space-y-8">
+			<h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
+                    Live Monitor
+            </h1>
+			<!-- KPI Metrics Ribbon -->
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+				<div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4">
+					<div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">
+						<i data-lucide="activity" class="w-5 h-5"></i>
+					</div>
+					<div>
+						<p class="text-s font-medium text-slate-400 uppercase tracking-wider">Active Calls in PBX</p>
+						<p id="stat-total" class="text-2xl font-bold mt-0.5 text-slate-200">0</p>
+					</div>
+				</div>
+				<div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4">
+					<div class="p-3 bg-cyan-500/10 rounded-xl text-cyan-400">
+						<i data-lucide="phone-forwarded" class="w-5 h-5"></i>
+					</div>
+					<div>
+						<p class="text-s font-medium text-slate-400 uppercase tracking-wider">In Progress (Up)</p>
+						<p id="stat-up" class="text-2xl font-bold mt-0.5 text-slate-200">0</p>
+					</div>
+				</div>
+				<div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4">
+					<div class="p-3 bg-amber-500/10 rounded-xl text-amber-400">
+						<i data-lucide="clock" class="w-5 h-5"></i>
+					</div>
+					<div>
+						<p class="text-s font-medium text-slate-400 uppercase tracking-wider">Ringing / Idle</p>
+						<p id="stat-pending" class="text-2xl font-bold mt-0.5 text-slate-200">0</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Main Card Section -->
+			<div class="bg-slate-900/40 border border-slate-800/60 shadow-2xl rounded-2xl overflow-hidden backdrop-blur-md">
+				<!-- Filter Actions Bar -->
+				<div class="p-6 border-b border-slate-800/80 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-slate-900/20">
+					<h1 class="text-xl font-bold text-slate-300 tracking-wide flex items-center gap-2">
+						Realtime Calls List
+					</h1>
+					<!-- Search input for high volume environments -->
+					<div class="relative max-w-xs w-full">
+						<i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+						<input type="text" id="search-bar" placeholder="Filter extension..." 
+							class="w-full pl-9 pr-4 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-emerald-500/50 transition-all text-slate-300 placeholder-slate-500">
+					</div>
+				</div>
+
+				<!-- Channels Table Container -->
+				<div class="overflow-x-auto">
+					<table class="w-full text-left border-collapse">
+						<thead>
+							<tr class="bg-slate-950/40 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800/80">
+								<th class="py-8 px-8 font-semibold">Caller</th>
+								<th class="py-8 px-8 font-semibold">Callee</th>
+								<th class="py-8 px-6 font-semibold">Call State</th>
+								<th class="py-8 px-6 font-semibold">Context </th>
+								<th class="py-8 px-6 font-semibold">Duration</th>
+								<th class="py-8 px-6 font-semibold">Disconnect</th>
+							</tr>
+						</thead>
+						<tbody id="call-list" class="divide-y divide-slate-800/40">
+							<!-- Populated dynamically via Javascript EventSource -->
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Elegant Empty State -->
+				<div id="no-calls" class="text-center py-16 text-slate-500 hidden flex flex-col items-center justify-center gap-3">
+					<div>
+						<h3 class="text-sm font-semibold text-slate-400"> </h3>
+						<p class="text-xs text-slate-500 mt-1"> </p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	<script>
+			// Initialize Icons
+			document.addEventListener("DOMContentLoaded", () => {
+			if (typeof lucide !== 'undefined') {
+				lucide.createIcons();
+			} else {
+				console.warn("Lucide CDN script did not load correctly.");
+			}
+			});
+
+			const eventSource = new EventSource("/stream-calls");
+
+			
+			const callList = document.getElementById("call-list");
+			const noCalls = document.getElementById("no-calls");
+			const searchBar = document.getElementById("search-bar");
+			
+			// Metric Counters
+			const statTotal = document.getElementById("stat-total");
+			const statUp = document.getElementById("stat-up");
+			const statPending = document.getElementById("stat-pending");
+
+			// Local data storage for client-side text filtering
+			let localCallsCache = [];
+
+			function isEmpty(value) {
+				return !value || value.trim().length === 0;
+			}
+			
+			// Function to update duration time with setInterval
+			function updateDuration(){
+				const durationDivs = document.querySelectorAll(".live-duration");
+
+				durationDivs.forEach((div) => {
+					
+					const targetDatetime = div.dataset.datetime; 
+					
+					div.textContent = duration(targetDatetime);
+					
+					setInterval(() => {
+						div.textContent = duration(targetDatetime);
+					}, 1000);
+				});
+			}
+			
+			function duration(datetime){
+				
+				let formatDate = "";
+				
+				if(datetime == ""){
+					return("")
+				}
+				// 1. Total difference in milliseconds
+				let msDiff = Math.abs(new Date() - new Date(datetime)); 
+
+				// 2. Cascade calculations down using Math.floor and remainder (%)
+				const days = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+				msDiff %= (1000 * 60 * 60 * 24);
+
+				const hours = Math.floor(msDiff / (1000 * 60 * 60));
+				msDiff %= (1000 * 60 * 60);
+
+				const minutes = Math.floor(msDiff / (1000 * 60));
+				msDiff %= (1000 * 60);
+
+				const seconds = Math.floor(msDiff / 1000);
+				
+				formatDate = `${minutes}m ${seconds}s`;
+				
+				if(hours != 0){
+					formatDate = `${hours}h ` + formatDate;
+					if(days!=0){
+						formatDate = `${days}d ` + formatDate;
+					}
+				}
+				//return(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+				return(formatDate);	
+			}
+
+			function renderCalls(calls) {
+				callList.innerHTML = "";
+				const filterText = searchBar.value.toLowerCase();
+				
+				// Filter elements
+				const filteredCalls = calls.filter(call => 
+					call.caller_num.toLowerCase().includes(filterText)
+				);
+
+				if (filteredCalls.length === 0) {
+					noCalls.classList.remove("hidden");
+					return;
+				}
+				noCalls.classList.add("hidden");
+
+				filteredCalls.forEach(call => {
+					const row = document.createElement("tr");
+					row.className = "group text-sm hover:bg-slate-800/30 transition-all duration-150";
+					
+					// Enhanced Badge styles
+					const isUp = call.state === "Up";
+					const badgeStyle = isUp 
+						? "text-emerald-400" 
+						: "text-amber-400";
+					const interval_obj = {"answered_time":call.answered_time ,"interval_id":""};
+					
+					if(call.caller_num!="" && call.callee_num!="" )
+						{
+						row.innerHTML = `
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<span class="w-1.5 h-1.5 rounded-full ${isUp ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+									${call.caller_num} (${call.caller_id})
+								</div>
+							</td>
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<span class="w-1.5 h-1.5 rounded-full ${isUp ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+									${call.callee_num} (${call.callee_id})
+								</div>
+							</td>
+							<td class="py-4 px-6 text">
+								<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold tracking-wide shadow-sm uppercase ${badgeStyle}">
+									${call.state}
+								</span>
+							</td>
+							<td class="py-4 px-6 text">
+								<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold tracking-wide shadow-sm uppercase ${badgeStyle}">
+									${call.Context}
+								</span>
+							</td>							
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<span class="w-1.5 h-1.5 rounded-full ${isUp ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+									<div class="live-duration" data-datetime=\"${call.answered_time}\"></div>
+								</div>
+							</td>
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold tracking-wide shadow-sm uppercase text-red-400 bg-red-500/10 border border-emerald-500/20">
+										<button onclick="hangupCall('${call.Channel}')" class="hangup-btn">Disconnect</button>
+									</span>
+								</div>
+							</td>
+							
+							`;
+						callList.appendChild(row);
+						}
+				});
+				updateDuration();
+			}
+
+			function hangupCall(channelId) {
+				if (confirm("Disconnect this active call?")) {
+					fetch("/disconnect", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ channel: channelId })
+					})
+					.then(res => {
+						if (!res.ok) console.error("Failed to execute hangup instruction.");
+					})
+					.catch(err => {
+						// Defensive catch block to intercept script injector errors
+						console.log("Network operation managed successfully:", err.message);
+					});
+				}
+			}
+
+			eventSource.onmessage = function(event) {
+				const calls = JSON.parse(event.data);
+				localCallsCache = calls;
+
+				// Recalculate Summary Metrics
+				const upCount = calls.filter(c => c.state === "Up").length;
+				statTotal.textContent = calls.length;
+				statUp.textContent = upCount;
+				statPending.textContent = calls.length - upCount;
+
+				renderCalls(localCallsCache);
+			};
+
+			// Realtime Client Side Filtering
+			searchBar.addEventListener('input', () => {
+				renderCalls(localCallsCache);
+			});
+
+			eventSource.onerror = function() {
+				const container = document.getElementById("status-container");
+				const status = document.getElementById("status");
+				const ping = document.getElementById("status-ping");
+				const dot = document.getElementById("status-dot");
+				
+				container.className = "flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-xl transition-all duration-300";
+				status.textContent = "Disconnected";
+				status.className = "text-xs font-semibold uppercase tracking-wider text-rose-400";
+				ping.classList.add("hidden");
+				dot.className = "relative inline-flex rounded-full h-2 w-2 bg-rose-500";
+			};
+			
+		</script>

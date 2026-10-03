@@ -1,0 +1,109 @@
+<!-- templates/allExtension.html -->
+<div id="extensions-view" class="workspace-view-panel space-y-6 hidden">
+    <div class="bg-slate-900/40 border border-slate-800/60 shadow-2xl rounded-2xl overflow-hidden backdrop-blur-md">
+        
+        <!-- Search and Filter Actions Bar -->
+        <div class="p-6 border-b border-slate-800/80 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-slate-900/20">
+            <div>
+                <h1 class="text-xl font-bold text-slate-300 tracking-wide flex items-center gap-2">
+                    <i data-lucide="users" class="w-5 h-5 text-blue-400"></i> Master Extension Directory
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Complete registered device statuses across internal network trunks.</p>
+            </div>
+            <div class="relative max-w-xs w-full">
+                <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" id="directory-search" placeholder="Filter roster list..." 
+                    class="w-full pl-9 pr-4 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-blue-500/50 text-slate-300 placeholder-slate-500"
+                    oninput="filterDirectoryRoster()">
+            </div>
+        </div>
+
+        <!-- Roster Data Grid Table -->
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse table-auto">
+                <thead>
+                    <tr class="bg-slate-950/40 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800/80">
+                        <th class="py-4 px-8 font-semibold">Extension Number</th>
+                        <th class="py-4 px-6 font-semibold">SIP detail</th>
+                        <th class="py-4 px-6 font-semibold">Status</th>
+                        
+                    </tr>
+                </thead>
+                <!-- Rows injected dynamically via fetchExtensions() below -->
+                <tbody id="directory-table-body" class="divide-y divide-slate-800/40"></tbody>
+            </table>
+        </div>
+		
+		
+    </div>
+</div>
+
+<script>
+    // Asynchronous Engine to run when tab is clicked from sidebar
+    function fetchExtensions() {
+        const tbody = document.getElementById("directory-table-body");
+        if(!tbody) return;
+        
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">Loading extensions roster matrix...</td></tr>`;
+        
+        fetch("/extensions-data")
+            .then(res => res.json())
+            .then(extensions => {
+                tbody.innerHTML = "";
+                
+                if(extensions.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">No configured extensions discovered inside Asterisk.</td></tr>`;
+                    return;
+                }
+
+                extensions.forEach(ext => {
+                    const tr = document.createElement("tr");
+                    tr.className = "directory-row hover:bg-slate-950/40 transition-colors duration-150 border-b border-slate-800/30";
+                    
+                    const statusBadge = ext.is_registered 
+                        ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Registered</span>`
+                        : `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-slate-500/10 text-slate-400 border-slate-800 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> Unregistered</span>`;
+
+					const sip_details = ext.Contacts
+					    ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> ${ext.Contacts}</span>`
+                        : `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-slate-500/10 text-slate-400 border-slate-800 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> --</span>`;
+
+                    tr.innerHTML = `
+                        <td class="py-4 px-8 font-mono text-sm font-semibold text-slate-200 search-field-num">${ext.num}</td>
+                        <td class="py-4 px-6">${sip_details}</td>
+                       
+                        <td class="py-4 px-6">${statusBadge}</td>
+                       
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                if (typeof refreshIcons === 'function') refreshIcons();
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-400 text-sm font-semibold">Failed to stream directory inventory data from backend endpoint.</td></tr>`;
+            });
+    }
+
+    function filterDirectoryRoster() {
+        const filter = document.getElementById("directory-search").value.toLowerCase().trim();
+        document.querySelectorAll(".directory-row").forEach(row => {
+            const numText = row.querySelector(".search-field-num").textContent.toLowerCase();
+            const nameText = row.querySelector(".search-field-name").textContent.toLowerCase();
+            if (numText.includes(filter) || nameText.includes(filter)) {
+                row.classList.remove("hidden");
+            } else {
+                row.classList.add("hidden");
+            }
+        });
+    }
+
+    function editExtension(num, name, dept) {
+        switchWorkspaceView('settings-view');
+        const extInput = document.querySelector('input[placeholder="e.g. 1005"]');
+        const nameInput = document.querySelector('input[placeholder="e.g. Technical Helpdesk"]');
+        if (extInput) { extInput.value = num; extInput.readOnly = true; }
+        if (nameInput) nameInput.value = name;
+    }
+</script>

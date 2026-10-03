@@ -1,0 +1,108 @@
+<!-- templates/console.html -->
+<div id="console-view" class="workspace-view-panel space-y-6 hidden">
+    <div class="bg-slate-900/40 border border-slate-800/60 shadow-2xl rounded-2xl p-6 backdrop-blur-md">
+        
+        <h2 class="text-xl font-bold text-slate-200 mb-2 flex items-center gap-2">
+            <i data-lucide="terminal" class="text-emerald-400"></i> Advanced AMI Ad-hoc Console
+        </h2>
+        <p class="text-sm text-slate-400 border-b border-slate-800/60 pb-4 mb-6">
+            Issue structured key-value json action maps directly down into the Asterisk PBX communication pipeline.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Input Terminal Controls Column -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">JSON Action Map Input Payload</label>
+                    <textarea id="ami-json-payload" rows="18" 
+                        class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-mono text-emerald-400 focus:border-emerald-500/50 focus:outline-none transition-colors"
+>
+{
+  "dc":"N",
+  "command":{
+	 "Action": "reload_pjsip_wizard",
+	 "Param":{}
+   }
+}
+
+</textarea>
+                </div>
+                
+                <!-- Quick Preset Help Macros Buttons Grid -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="loadConsoleMacro('PJSIPShowEndpoints')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Endpoints</button>
+                    <button onclick="loadConsoleMacro('ReloadPJSIP')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Reload PJSIP</button>
+                    <button onclick="loadConsoleMacro('ReloadDialplan')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Reload Dialplan</button>
+                    <button onclick="loadConsoleMacro('CreateExtension')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Create Extension</button>
+                    <button onclick="loadConsoleMacro('CreateDialplan')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Create Dialplan</button>
+                    
+                </div>
+
+                <button onclick="dispatchCustomAmiAction()" id="console-submit-btn"
+                    class="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 font-bold rounded-xl text-sm text-white shadow-lg shadow-emerald-500/10 hover:opacity-90 transition-all flex items-center gap-2">
+                    <i data-lucide="play" class="w-4 h-4"></i> Send Command Packet
+                </button>
+            </div>
+
+            <!-- Output Display Screen Terminal Column -->
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Asterisk CLI Channel Core Output Response</label>
+                <div class="w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-slate-300 select-all whitespace-pre-wrap" id="ami-terminal-response-screen">
+Waiting for execution pipeline payload command packet...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Presets catalog macro utility loading handler
+    function loadConsoleMacro(actionName) {
+        const area = document.getElementById("ami-json-payload");
+        if(actionName === 'ReloadPJSIP') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_pjsip_wizard",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'ReloadDialplan') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_dialplan",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'PJSIPShowEndpoints') area.value = '{ \n "dc":"Y",\n "command":{\n\t"Action": "PJSIPShowEndpoints",\n\t"ActionID": "check-all-endpoints-2"\n}\n}';
+		if(actionName === 'CreateExtension') area.value = '{\n"dc":"N",\n"command":{\n\t"Action": "create_extension",\n\t"Param":{\n\t\t "context-template":"exch-template",\n\t\t"extension":"",\n\t\t"callerid":"",\n\t\t"password": ""\n\t\t}\n\t}\n}';
+		if(actionName === 'CreateDialplan') area.value = '{\n\t"dc":"N",\n\t"command":{\n\t\t"Action": "create_dialplan",\n\t\t"Param":{\n\t\t"context":"exch",\n\t\t"extension":"66411" \n\t\t}\n\t}\n}';
+		
+    }
+
+    function dispatchCustomAmiAction() {
+        const payloadArea = document.getElementById("ami-json-payload");
+        const screen = document.getElementById("ami-terminal-response-screen");
+        const btn = document.getElementById("console-submit-btn");
+
+        let validatedJson;
+        try {
+            validatedJson = JSON.parse(payloadArea.value);
+        } catch(e) {
+            alert("Invalid JSON data format specified. Ensure standard formatting structures.");
+            return;
+        }
+
+        screen.textContent = "Processing packet matrix... Transmitting over core network pipelines...";
+        screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-amber-400 select-all whitespace-pre-wrap";
+
+        fetch("/execute-ami", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dc:validatedJson.dc, 
+								   command: validatedJson.command })
+								})
+        .then(res => res.json())
+        .then(data => {
+            screen.textContent = data.output;
+            if(data.status === 'success') {
+                screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-emerald-400 select-all whitespace-pre-wrap";
+            } else {
+                screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-red-400 select-all whitespace-pre-wrap";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            screen.textContent = "Critical communication loss. Server interface reached unreachable route boundary.";
+            screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-red-500 select-all whitespace-pre-wrap";
+        });
+    }
+</script>
+

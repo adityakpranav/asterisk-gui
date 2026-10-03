@@ -1,0 +1,80 @@
+<div class="lg:col-span-2 space-y-6">
+    <!-- View Switcher Navigation Menu Block -->
+    <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 backdrop-blur-md">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 px-2">Navigation Views</h3>
+        <nav class="space-y-1">
+            <button onclick="switchWorkspaceView('monitor-view')" id="nav-monitor-view" 
+                class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all">
+                <i data-lucide="activity" class="w-4 h-4"></i> Live Monitor
+            </button>
+			
+			<button onclick="switchWorkspaceView('extensions-view')" id="nav-extensions-view" 
+                class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all">
+                <i data-lucide="users" class="w-4 h-4"></i> All Extensions
+            </button>
+        </nav>
+    </div>
+
+    <!-- Static Extensions Directory Module -->
+    <!--
+	<div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 backdrop-blur-md">
+        <h2 class="text-lg font-bold text-slate-300 mb-4 pb-2 border-b border-slate-800/60 flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
+            Extensions Directory
+        </h2>
+        <div class="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+            {% for ext in extensions %}
+            <div class="p-3 bg-slate-950/60 border border-slate-800/40 rounded-xl flex justify-between items-center group hover:border-slate-700/60 transition-all duration-150">
+                <div>
+                    <p class="text-sm font-semibold text-slate-200 font-mono">{{ ext.num }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ ext.name }}</p>
+                </div>
+                <span class="text-[10px] uppercase font-bold tracking-wide px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md">
+                    {{ ext.dept }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+	-->
+
+</div>
+
+<script>
+    // Client-Side Tab Routing Orchestration Rule
+	// Inside templates/sidebar.html layout navigation click logic handler
+	function switchWorkspaceView(targetId) {
+		document.querySelectorAll('.workspace-view-panel').forEach(panel => {
+			panel.classList.add('hidden');
+		});
+		
+		const activePanel = document.getElementById(targetId);
+		if (activePanel) activePanel.classList.remove('hidden');
+
+		// --- ADDED: Load network data on-demand if All Extensions is selected ---
+		if (targetId === 'extensions-view') {
+			fetchExtensions(); 
+		}
+
+		// Reset layout navigation button highlight attributes below...
+		document.querySelectorAll('nav button').forEach(btn => {
+			btn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all";
+		});
+
+		const currentBtn = document.getElementById(`nav-${targetId}`);
+		if(targetId === 'monitor-view') {
+			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all";
+		} else if(targetId === 'extensions-view') {
+			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-blue-500/10 text-blue-400 border-blue-500/20 transition-all";
+		} else if(targetId === 'console-view') {
+			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all";
+		}else if(targetId === 'setting-view') {
+			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all";
+		} else {
+			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-cyan-500/10 text-cyan-400 border-cyan-500/20 transition-all";
+		}
+		
+		if (typeof refreshIcons === 'function') refreshIcons();
+	}
+
+</script>

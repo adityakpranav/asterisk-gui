@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Asterisk GUI</title>
+        <script src="https://tailwindcss.com"></script>
+    </head>
+    <body class="bg-gray-900 text-gray-100 min-h-screen p-8">
+        <div class="max-w-4xl mx-auto">
+            <header class="flex justify-between items-center border-b border-gray-700 pb-4 mb-6">
+                <h1 class="text-2xl font-bold text-emerald-400">Active Calls Realtime</h1>
+                <span id="status" class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 animate-pulse">Connected</span>
+            </header>
+
+            <div class="bg-gray-800 shadow-xl rounded-lg p-6">
+                <h2 class="text-lg font-semibold mb-4 text-gray-300">Active Channels</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400 text-sm">
+                                <th class="pb-3 font-medium">Caller ID / Extension</th>
+                                <th class="pb-3 font-medium">Call State</th>
+                            </tr>
+                        </thead>
+                        <tbody id="call-list" class="divide-y divide-gray-700/50">
+                            <!-- Populated dynamically via Javascript EventSource -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-calls" class="text-center py-8 text-gray-500 hidden">No active calls.</div>
+            </div>
+        </div>
+
+        <script>
+            // Open a continuous SSE stream channel with the Python backend
+            const eventSource = new EventSource("/stream-calls");
+            const callList = document.getElementById("call-list");
+            const noCalls = document.getElementById("no-calls");
+
+            eventSource.onmessage = function(event) {
+                const calls = JSON.parse(event.data);
+                callList.innerHTML = "";
+                
+                if (calls.length === 0) {
+                    noCalls.classList.remove("hidden");
+                    return;
+                }
+                noCalls.classList.add("hidden");
+
+                calls.forEach(call => {
+                    const row = document.createElement("tr");
+                    row.className = "text-sm hover:bg-gray-700/30 transition-colors";
+                    
+                    // State coloring
+                    const stateColor = call.state === "Up" ? "text-emerald-400 bg-emerald-400/10" : "text-amber-400 bg-amber-400/10";
+                    
+                    row.innerHTML = `
+                        <td class="py-4 font-mono font-medium text-gray-200">${call.caller_id}</td>
+                        <td class="py-4">
+                            <span class="px-2.5 py-1 rounded-md text-xs font-semibold ${stateColor}">
+                                ${call.state}
+                            </span>
+                        </td>
+                    `;
+                    callList.appendChild(row);
+                });
+            };
+
+            eventSource.onerror = function() {
+                const status = document.getElementById("status");
+                status.textContent = "Disconnected";
+                status.className = "px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-400";
+            };
+        </script>
+    </body>
+    </html>

@@ -1,0 +1,232 @@
+	<!-- templates/settings.html -->
+	<div id="setting-view" class="workspace-view-panel space-y-6 hidden">
+		<div class="bg-slate-900/40 border border-slate-800/60 shadow-2xl rounded-2xl p-6 backdrop-blur-md">
+			
+			<!-- Header Profile Banner Tracker Element -->
+			<h2 class="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
+				<i data-lucide="settings" class="text-cyan-400"></i> Extension Configuration
+			</h2>
+
+			<!-- UPPER TAB FIELD BAR SUB-NAVIGATION MENU -->
+			<div class="border-b border-slate-800 pb-px mb-6 flex gap-2">
+				<button onclick="switchSettingsSubTab('create')" id="tab-btn-create"
+					class="px-4 py-2 border-b-2 border-cyan-400 text-cyan-400 text-sm font-bold tracking-wide transition-all focus:outline-none">
+					Create Extension
+				</button>
+				 
+				<button onclick="switchSettingsSubTab('modify')" id="tab-btn-modify"
+					class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-semibold tracking-wide transition-all focus:outline-none">
+					Modify Extension
+				</button>
+				
+				<button onclick="switchSettingsSubTab('delete')" id="tab-btn-delete"
+					class="px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-semibold tracking-wide transition-all focus:outline-none">
+					Delete Extension
+				</button>
+			</div>
+
+			<!-- SHARED FORM WRAPPER MECHANISM -->
+			<form onsubmit="handleProvisioningSubmission(event)" class="max-w-md space-y-4">
+				<!-- Hidden context tracking mechanism to hold what operation is currently run -->
+				<input type="hidden" id="current-settings-op" value="create">
+
+				<!-- EXTENSION NUMBER FIELD From -->
+				<div>
+					<label class="block text-xs font-bold uppercase text-slate-400 tracking-wider mb-2" id="label-ext-num">Extension Number</label>
+					<input type="text" id="form-ext-num" placeholder="e.g. 1005" required
+						class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-300 focus:border-cyan-500/50 focus:outline-none transition-colors font-mono">
+				</div>
+				
+				<!-- EXTENSION NUMBER FIELD TO -->
+				<div  id="wrapper-ext-num2" class="sub-form-field">
+					<label class="block text-xs font-bold uppercase text-slate-400 tracking-wider mb-2" id="label-ext-num2">To Extension Number</label>
+					<input type="text" id="form-ext-num2" placeholder="e.g. 1006" 
+						class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-300 focus:border-cyan-500/50 focus:outline-none transition-colors font-mono">
+				</div>
+				
+				
+				<div id="wrapper-ext-name" class="sub-form-field">
+					<label class="block text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Display User Full Name</label>
+					<input type="text" id="form-ext-name" placeholder="Caller ID"
+						class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:border-cyan-500/50 text-slate-300 focus:outline-none transition-colors">
+				</div>
+
+				
+				<div id="wrapper-ext-dept" class="sub-form-field">
+					<label class="block text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Department Template</label>
+					<input type="text" id="form-ext-dept" placeholder="Department-template"
+						class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:border-cyan-500/50 text-slate-300 focus:outline-none transition-colors">
+				</div>
+
+				<div id="wrapper-ext-passwd" class="sub-form-field">
+					<label class="block text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">SIP Password</label>
+					<input type="text" id="form-ext-passwd" placeholder="SIP Password"
+						class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:border-cyan-500/50 text-slate-300 focus:outline-none transition-colors">
+				</div>
+				
+				
+				<!-- INTERACTIVE TRANSACTION SUBMIT TRIGGERS -->
+				<div class="pt-2 flex gap-3">
+					<button type="submit" id="form-submit-action-btn"
+						class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 font-bold rounded-xl text-sm text-white shadow-lg shadow-cyan-500/10 hover:opacity-90 transition-all flex items-center gap-2">
+						<i data-lucide="save" class="w-4 h-4"></i> Create Extension
+					</button>
+					<button type="button" onclick="switchWorkspaceView('setting-view')" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-sm text-slate-300 transition-all">
+						Reset
+					</button>
+				</div>
+			</form>
+
+			<!-- RESPONSE DISPLAY LOGGER BOX TERMINAL (RENDERED AT THE BOTTOM) -->
+			<div class="mt-8 pt-6 border-t border-slate-800/80">
+				<label class="block text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Server Transaction Response Output Channel Log</label>
+				<div id="provisioning-response-screen" class="w-full min-h-[60px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-slate-500 whitespace-pre-wrap select-all">
+	Awaiting system configuration action request...
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		// Sub-tab toggling layout routing mechanism rules
+		function switchSettingsSubTab(subTabId) {
+			const opTrack = document.getElementById("current-settings-op");
+			const numLabel = document.getElementById("label-ext-num");
+			const numInput = document.getElementById("form-ext-num");
+			const numInput2 = document.getElementById("form-ext-num2");
+			const submitBtn = document.getElementById("form-submit-action-btn");
+			
+			const num2Wrap = document.getElementById("wrapper-ext-num2");
+			const nameWrap = document.getElementById("wrapper-ext-name");
+			const deptWrap = document.getElementById("wrapper-ext-dept");
+			const passwdWrap = document.getElementById("wrapper-ext-passwd");
+
+			// Clear values out on sub tab hop to prevent variable leakage validation blocks
+			numInput.value = "";
+			numInput2.value = "";
+			document.getElementById("form-ext-name").value = "";
+			document.getElementById("form-ext-dept").value = "";
+			document.getElementById("form-ext-passwd").value = "";
+			numInput.readOnly = false;
+			numInput2.readOnly = false;
+			numInput.className = "w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-300 focus:border-cyan-500/50 focus:outline-none transition-colors font-mono";
+			numInput2.className = "w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-300 focus:border-cyan-500/50 focus:outline-none transition-colors font-mono";
+
+			// Reset all navigation text tab anchors headers highlights styling parameters
+			document.querySelectorAll('#settings-view border-b button, #settings-view .border-b button').forEach(btn => {
+				btn.className = "px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-semibold tracking-wide transition-all focus:outline-none";
+			});
+
+			// hide lower selection bar
+			document.getElementById("tab-btn-create").className = "px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-semibold tracking-wide transition-all focus:outline-none";
+			document.getElementById("tab-btn-modify").className = "px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-semibold tracking-wide transition-all focus:outline-none";
+			document.getElementById("tab-btn-delete").className = "px-4 py-2 border-b-2 border-transparent text-slate-400 hover:text-slate-200 text-sm font-semibold tracking-wide transition-all focus:outline-none";
+
+			
+			// Set matching sub target identifier
+			opTrack.value = subTabId;
+			document.getElementById(`tab-btn-${subTabId}`).className = "px-4 py-2 border-b-2 border-cyan-400 text-cyan-400 text-sm font-bold tracking-wide transition-all focus:outline-none";
+
+			if(subTabId === 'create') {
+				numLabel.textContent = "New Extension Allocation Number";
+				num2Wrap.classList.remove("hidden");
+				nameWrap.classList.remove("hidden");
+				deptWrap.classList.remove("hidden");
+				passwdWrap.classList.remove("hidden");
+				submitBtn.className = "px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 font-bold rounded-xl text-sm text-white shadow-lg shadow-cyan-500/10 hover:opacity-90 transition-all flex items-center gap-2";
+				submitBtn.innerHTML = `<i data-lucide="plus-circle" class="w-4 h-4"></i> Create Extension`;
+			} 
+			else if(subTabId === 'modify') {
+				numLabel.textContent = "Extension Number to Update ";
+				nameWrap.classList.remove("hidden");
+				deptWrap.classList.remove("hidden");
+				passwdWrap.classList.remove("hidden");
+				num2Wrap.classList.add("hidden");
+				submitBtn.className = "px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 font-bold rounded-xl text-sm text-white shadow-lg shadow-amber-500/10 hover:opacity-90 transition-all flex items-center gap-2";
+				submitBtn.innerHTML = `<i data-lucide="edit-2" class="w-4 h-4"></i> Submit modification`;
+			} 
+			else if(subTabId === 'delete') {
+				numLabel.textContent = "Delete Extension Number (Irreversible)";
+				deptWrap.classList.remove("hidden");
+				num2Wrap.classList.remove("hidden");				
+				nameWrap.classList.add("hidden");
+				passwdWrap.classList.add("hidden");
+				submitBtn.className = "px-5 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 font-bold rounded-xl text-sm text-white shadow-lg shadow-red-500/10 hover:opacity-90 transition-all flex items-center gap-2";
+				submitBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> Delete Extension`;
+			}
+
+			if(typeof refreshIcons === 'function') refreshIcons();
+		}
+
+		// Dynamic central handler pipeline submission function execution
+		function handleProvisioningSubmission(event) {
+			event.preventDefault();
+
+			const currentOp = document.getElementById("current-settings-op").value;
+			const screen = document.getElementById("provisioning-response-screen");
+			
+			let endpoint = `/extension/${currentOp}`;
+			let payload = { numStart: document.getElementById("form-ext-num").value,
+							numEnd: document.getElementById("form-ext-num2").value};
+			payload.dept = document.getElementById("form-ext-dept").value;
+			
+			if(currentOp !== 'delete') {
+				payload.callerid = document.getElementById("form-ext-name").value;
+				payload.passwd = document.getElementById("form-ext-passwd").value;
+			}
+
+			screen.textContent = "Transmitting transaction frames to the PBX supervisor loop...";
+			screen.className = "w-full min-h-[60px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-amber-400 whitespace-pre-wrap select-all";
+
+			fetch(endpoint, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			})
+			.then(res => res.json())
+			.then(data => {
+				// Unpack core server transaction data objects
+				screen.textContent = `[Server Action Timestamp: ${new Date().toLocaleTimeString()}]\nStatus Payload Return: ${data.status.toUpperCase()}\nResponse String Trace: ${data.message}`;
+				
+				if(data.status === 'success') {
+					screen.className = "w-full min-h-[60px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-emerald-400 whitespace-pre-wrap select-all";
+				}else {
+					screen.className = "w-full min-h-[60px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-rose-400 whitespace-pre-wrap select-all";
+					}
+			})
+			.catch(err => {
+				console.error(err);
+				screen.textContent = "Critical network pipe transmission loss:\n${err.message}";
+				screen.className = "w-full min-h-[60px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-red-500 whitespace-pre-wrap select-all";
+			})
+		}
+			
+
+
+
+
+
+		function editExtension(num, name, dept, passwd) {
+			// 1. Force the master tab dashboard container open
+			switchWorkspaceView('settings-view');
+			
+			// 2. Select the modify sub-tab view structure configuration parameters rules
+			switchSettingsSubTab('modify');
+			
+			// 3. Inject matching tracking arguments inside form inputs
+			const numInput = document.getElementById("form-ext-num");
+			if(numInput) {
+				numInput.value = num;
+				numInput.readOnly = true; // Lock down the primary extension number to maintain backend relational map constraints
+				numInput.className = "w-full px-4 py-2 bg-slate-950/40 border border-slate-800 rounded-xl text-sm text-slate-500 focus:outline-none cursor-not-allowed font-mono";
+			}
+			
+			document.getElementById("form-ext-name").value = name || "";
+			document.getElementById("form-ext-dept").value = dept || "Internal PBX";
+			document.getElementById("form-ext-passwd").value = passwd || "1234";
+		}
+			
+	</script>			
+				
+				

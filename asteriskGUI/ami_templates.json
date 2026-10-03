@@ -1,0 +1,161 @@
+{
+    "show_endpoint": {
+        "Action": "PJSIPShowEndpoint",
+        "ActionID": "check-endpoint-{extension}"
+    },    
+	"show_endpoints": {
+        "Action": "PJSIPShowEndpoints",
+        "ActionID": "check-all-endpoints-2"
+    },
+	"show_contacts": {
+        "Action": "PJSIPShowContacts",
+        "ActionID": "bulk-registration-check-1"
+    },
+    "reload_pjsip_wizard": {
+        "Action": "Command",
+        "Command": "module reload res_pjsip_config_wizard.so",
+        "ActionID": "reload-wizard-now"
+    },
+	"reload_dialplan": {
+		"Action": "Command",
+		"Command": "dialplan reload",
+		"ActionID": "tunnel-dialplan-reload"
+    },
+	"manager_reload": {
+		"Action": "Command",
+		"Command": "manager reload",
+		"ActionID": "reload-manager-subsystem"
+	},
+	"create_extension": {
+        "Action": "UpdateConfig",
+        "SrcFilename": "pjsip_wizard.conf",
+        "DstFilename": "pjsip_wizard.conf",
+		"Action-000000": "newcat",
+		"Cat-000000": "{extension}",
+		"Options-000000": "inherit=\"{context-template}\"",
+		"Action-000001": "append",
+		"Cat-000001": "{extension}",
+		"Var-000001": "endpoint/callerid",
+		"Value-000001": "\"{callerid}\"<{extension}>",		
+		"Action-000002": "append",
+		"Cat-000002": "{extension}",
+		"Var-000002": "inbound_auth/username",
+		"Value-000002": "{extension}",
+		"Action-000003": "append",
+		"Cat-000003": "{extension}",
+		"Var-000003": "inbound_auth/password",
+		"Value-000003": "{password}"
+	},
+	"create_dialplan":{
+		"Action": "UpdateConfig",
+		"SrcFilename": "extensions.conf",
+		"DstFilename": "extensions.conf",
+		"Action-000000": "append",
+		"Cat-000000": "{context}",
+		"Var-000000": "exten",
+		"Value-000000": ">{extension},1,Dial(PJSIP/{extension})",
+		"Action-000001": "append",
+		"Cat-000001": "{context}",
+		"Var-000001": "same",
+		"Value-000001": "n,Hangup()"	
+	},
+	"modify_extension_password":{
+        "Action": "UpdateConfig",
+        "SrcFilename": "pjsip_wizard.conf",
+        "DstFilename": "pjsip_wizard.conf",
+		"Reload": "res_pjsip_config_wizard",
+		"Action-000000": "update",
+		"Cat-000000": "{extension}",
+		"Options-000000": "inherit= {context-template}",
+		"Var-000000": "inbound_auth/password",
+		"Value-000000": "{password}"
+	},
+	"modify_extension_callerid":{
+        "Action": "UpdateConfig",
+        "SrcFilename": "pjsip_wizard.conf",
+        "DstFilename": "pjsip_wizard.conf",
+		"Reload": "res_pjsip_config_wizard",
+		"Action-000000": "update",
+		"Cat-000000": "{extension}",
+		"Options-000000": "inherit= {context-template}",
+		"Var-000000": "endpoint/callerid",
+		"Value-000000": "\"{callerid}\"<{extension}>"
+	},
+	"modify_dialplan":{
+		"Action": "UpdateConfig",
+		"SrcFilename": "extensions.conf",
+		"DstFilename": "extensions.conf"
+	},
+	"delete_extension":{
+		"Action": "UpdateConfig",
+		"SrcFilename": "pjsip_wizard.conf",
+		"DstFilename": "pjsip_wizard.conf",
+		"Reload": "yes",
+		"Action-000000": "DelCat",
+		"Cat-000000": "{extension}"
+	},
+	"delete_dialplan":{
+		"Action": "UpdateConfig",
+		"SrcFilename": "extensions.conf",
+		"DstFilename": "extensions.conf",
+		"Reload": "yes",
+		"Action-000000": "Delete",
+		"Cat-000000": "{context}",
+		"Var-000000": "exten",
+		"Value-000000": "{extension},1,Dial(PJSIP/{extension})",
+	    "Action-000001": "Delete",
+		"Cat-000001": "{context}",
+		"Var-000001": "same",
+		"Match-000001": "n,Hangup()"
+	},
+	"delete_dialplan_byline":{
+		"Action": "UpdateConfig",
+		"SrcFilename": "extensions.conf",
+		"DstFilename": "extensions.conf",
+		"Reload": "yes",
+		"Action-000000": "Delete",
+		"Cat-000000": "{context}",
+		"Var-000000": "same",
+		"Line-000000": "{line1}",
+		"Action-000001": "Delete",
+		"Cat-000001": "{context}",
+		"Var-000001": "exten",
+		"Line-000001": "{line0}"
+	},
+	"get_dialplan":{
+		"Action": "GetConfig",
+		"Filename": "extensions.conf",
+		"Category": "{context}"
+	},
+	"create_user":{
+		"Action": "UpdateConfig",
+		"SrcFilename": "manager.conf",
+		"DstFilename": "manager.conf",
+		"Reload": "Yes",
+		"Action-000000": "append",
+		"Cat-000000": "{username}",
+		"Var-000000": "secret",
+		"Value-000000": "{password}",
+		"Action-000001": "append",
+		"Cat-000001": "{username}",
+		"Var-000001": "read",
+		"Value-000001": "{read_permission}",
+		"Action-000002": "append",
+		"Cat-000002": "{username}",
+		"Var-000002": "write",
+		"Value-000002": "{write_permission}",
+		"Action-000003": "append",
+		"Cat-000003": "{username}",
+		"Var-000003": "permit",
+		"Value-000003": "{ip_slash_mask}"
+	},
+	"delete_user":{
+		"Action": "UpdateConfig",
+        "SrcFilename": "manager.conf",
+        "DstFilename": "manager.conf",
+        "Reload": "Yes",
+        "Action-000000": "delcat",
+        "Cat-000000": "{username}"
+	}
+	
+}
