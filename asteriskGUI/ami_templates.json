@@ -11,15 +11,19 @@
         "Action": "PJSIPShowContacts",
         "ActionID": "bulk-registration-check-1"
     },
-    "reload_pjsip_wizard": {
+    "reload_pjsip": {
         "Action": "Command",
-        "Command": "module reload res_pjsip_config_wizard.so",
+        "Command": "module reload res_pjsip.so",
         "ActionID": "reload-wizard-now"
     },
 	"reload_dialplan": {
 		"Action": "Command",
 		"Command": "dialplan reload",
 		"ActionID": "tunnel-dialplan-reload"
+    },"reload_core": {
+		"Action": "Command",
+		"Command": "core restart gracefully",
+		"ActionID": "tunnel-core-reload"
     },
 	"manager_reload": {
 		"Action": "Command",
@@ -57,7 +61,7 @@
 		"Action-000001": "append",
 		"Cat-000001": "{context}",
 		"Var-000001": "same",
-		"Value-000001": "n,Hangup()"	
+		"Value-000001": ">n,Hangup()"	
 	},
 	"modify_extension_password":{
         "Action": "UpdateConfig",

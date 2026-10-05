@@ -20,7 +20,7 @@
 {
   "dc":"N",
   "command":{
-	 "Action": "reload_pjsip_wizard",
+	 "Action": "reload_pjsip",
 	 "Param":{}
    }
 }
@@ -35,6 +35,7 @@
                     <button onclick="loadConsoleMacro('ReloadDialplan')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Reload Dialplan</button>
                     <button onclick="loadConsoleMacro('CreateExtension')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Create Extension</button>
                     <button onclick="loadConsoleMacro('CreateDialplan')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Create Dialplan</button>
+                    <button onclick="loadConsoleMacro('ReloadCORE')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Reload CORE</button>
                     
                 </div>
 
@@ -59,11 +60,12 @@ Waiting for execution pipeline payload command packet...
     // Presets catalog macro utility loading handler
     function loadConsoleMacro(actionName) {
         const area = document.getElementById("ami-json-payload");
-        if(actionName === 'ReloadPJSIP') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_pjsip_wizard",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'ReloadPJSIP') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_pjsip",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'ReloadDialplan') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_dialplan",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'PJSIPShowEndpoints') area.value = '{ \n "dc":"Y",\n "command":{\n\t"Action": "PJSIPShowEndpoints",\n\t"ActionID": "check-all-endpoints-2"\n}\n}';
 		if(actionName === 'CreateExtension') area.value = '{\n"dc":"N",\n"command":{\n\t"Action": "create_extension",\n\t"Param":{\n\t\t "context-template":"exch-template",\n\t\t"extension":"",\n\t\t"callerid":"",\n\t\t"password": ""\n\t\t}\n\t}\n}';
 		if(actionName === 'CreateDialplan') area.value = '{\n\t"dc":"N",\n\t"command":{\n\t\t"Action": "create_dialplan",\n\t\t"Param":{\n\t\t"context":"exch",\n\t\t"extension":"66411" \n\t\t}\n\t}\n}';
+        if(actionName === 'ReloadCORE') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_core",\n\t "Param":{}\n\t}\n}';
 		
     }
 

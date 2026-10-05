@@ -52,7 +52,7 @@ async def create_new_extension(payload: ExtensionCreateRequest):
             print("all_response : ",all_response)
             print("Extension Created Successfully")
             
-            command_payload.command["Action"] = "reload_pjsip_wizard"
+            command_payload.command["Action"] = "reload_pjsip"
             await execute_ami_command(command_payload)
             
             command_payload.command["Action"] = "reload_dialplan"
@@ -87,14 +87,14 @@ async def create_new_extension(payload: ExtensionCreateRequest):
             
             print("Extension Created Successfully")
             
-            command_payload.command["Action"] = "reload_pjsip_wizard"
+            command_payload.command["Action"] = "reload_pjsip"
             await execute_ami_command(command_payload)
             
             command_payload.command["Action"] = "reload_dialplan"
             await execute_ami_command(command_payload)
             
             
-            return {"status": "success", "message": f"Extension {numStart} successfully created in PBX pool configuration context.","response":str(all_response)}
+            return {"status": "success", "response": f"Extension {numStart} successfully created in PBX pool configuration context.","message":str(all_response)}
     except Exception as e:
         return {"status": "error", "message": f"Backend pipeline creation error exception: {str(e)}"}
 
@@ -137,7 +137,14 @@ async def modify_existing_extension(payload: ExtensionModifyRequest):
         
         print("all_response : ",all_response) 
         print("Extension Modified Successfully")
-            
+        
+        # Reload PJSIP and Dialplan
+        command_payload = AMICommandRequest(dc="N",command={"Action": "reload_pjsip","Param": {}}) 
+        all_response["reload_pjsip"] = await execute_ami_command(command_payload)
+
+        command_payload = AMICommandRequest(dc="N",command={"Action": "reload_dialplan","Param": {}}) 
+        all_response["reload_dialplan"] = await execute_ami_command(command_payload)
+
         return {"status": "success", "message": f"Extension {num} successfully modified in Main Exchange configuration context.","response":str(all_response)}    
     except Exception as e:
         return {"status": "error", "message": f"Backend pipeline creation error exception: {str(e)}"}
