@@ -26,21 +26,27 @@ sudo systemctl enable vsftpd
 VSFTPD_CONFIG="write_enable=YES
 chroot_local_user=YES
 allow_writeable_chroot=YES
-local_root=/"
+local_root=/
+
+pasv_enable=YES
+pasv_min_port=40000
+pasv_max_port=50000
+"
 
 # Append the lines to /etc/vsftpd.conf safely using sudo tee
-sudo echo "$VSFTPD_CONFIG" | sudo tee -a /etc/vsftpd.conf
+echo "$VSFTPD_CONFIG" | sudo tee -a /etc/vsftpd.conf
 
 
 sudo ufw allow 20/tcp
 sudo ufw allow 21/tcp
-sudo ufw reload
+sudo ufw allow 123/udp
+sudo ufw allow 5060/udp
+sudo ufw allow 40000:50000/tcp
+#sudo ufw reload
 sudo systemctl restart vsftpd 
 
 echo "**************  vsftpd configuration updated successfully.*********************"
 sudo chmod -R 777 "$PWD"
-
-sudo bash datetime_config.sh
 
 #cp -r asterisk_util/asterisk /etc/asterisk
 

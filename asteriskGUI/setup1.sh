@@ -111,6 +111,8 @@ sudo bash keepalived/health-check-scripts.sh
 
 sudo chown root:root /etc/keepalived/keepalived.conf
 sudo chmod 644 /etc/keepalived/keepalived.conf
+sudo ufw allow 8000/tcp
+
 
 sudo systemctl enable keepalived
 sudo systemctl start keepalived
@@ -123,6 +125,9 @@ sudo ss -lnpup | grep asterisk
 
 # Check if endpoints are online
 sudo asterisk -rx "pjsip show endpoints"
+
+echo "[+] Configuring NTP Server..."
+sudo bash datetime_config.sh
 
 
 echo " ****************  Check Asterisk Version Details **************** "
