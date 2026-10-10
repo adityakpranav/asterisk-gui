@@ -13,6 +13,6 @@ if [ $? -eq 0 ]; then
     asterisk -rx "dialplan reload" && asterisk -rx "pjsip reload"
 
     # Reload Remote Secondary Asterisk over SSH
-    ssh $REMOTE_SSH_SERVER "asterisk -rx 'dialplan reload' && asterisk -rx 'pjsip reload'"
+    ssh $REMOTE_SSH_SERVER "asterisk -rx 'dialplan reload' && asterisk -rx 'pjsip reload' && chmod 777 /etc/asterisk/ -R"
 fi
 

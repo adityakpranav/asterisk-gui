@@ -2,7 +2,7 @@
 
 REMOTE_SSH_SERVER="root@10.24.49.192"
 
-echo "[+] SYNC Primary to Secondary ...... "
+echo "[+] SYNC Secondary to Primary ...... "
 sudo unison asterisk_sync
 
 # Push Chenges to Secondary Server
@@ -13,6 +13,7 @@ if [ $? -eq 0 ]; then
     asterisk -rx "dialplan reload" && asterisk -rx "pjsip reload"
 
     # Reload Remote Secondary Asterisk over SSH
-    ssh $REMOTE_SSH_SERVER "asterisk -rx 'dialplan reload' && asterisk -rx 'pjsip reload'"
+    ssh $REMOTE_SSH_SERVER "asterisk -rx 'dialplan reload' && asterisk -rx 'pjsip reload' && chmod 777 /etc/asterisk/ -R"
+
 fi
 

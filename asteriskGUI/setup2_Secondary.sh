@@ -1,23 +1,21 @@
 
 
 echo "[+] Configuring Realtime Sync..."
-
-sudo apt install unison openssh-client openssh-server -y
-
-
-echo "[+]  Configuring in Primary Server ...."
+echo "[+]  Configuring in Secondary Server ...."
 echo " Generate an SSH key pair (hit Enter through all prompts to keep passphrase blank):"
 
 # Target Secondary Server
-SECONDARY_SERVER="root@10.24.49.193"
+REMOTE_SERVER="root@10.24.49.192"
 
 sudo ssh-keygen -t rsa -b 4096
 
-echo "[+] Type the correct root password for 10.24.49.193 when prompted. It should successfully report that 1 key was added."
-ssh-copy-id $SECONDARY_SERVER
+echo "[+] Type the correct root password for 10.24.49.192 when prompted. It should successfully report that 1 key was added."
+ssh-copy-id $REMOTE_SERVER
 
 echo "******************   type exit when logged into Secondary Server ********"
-ssh $SECONDARY_SERVER "exit"
+#ssh $SECONDARY_SERVER "exit"
+ssh $REMOTE_SERVER "sudo cp /etc/ssh/sshd_config_bkp /etc/ssh/sshd_config && echo 'PermitRootLogin prohibit-password' | sudo tee -a /etc/ssh/sshd_config && sudo systemctl restart ssh"
+
 
 # Ask the user a question
 read -p "Did you get access to Secondary Server? (y/n): " choice
@@ -32,10 +30,13 @@ fi
 
 
 sudo mkdir -p ~/.unison
+UNISON_PROFILE_PATH="$HOME/.unison/asterisk.prf" 
+mkdir -p "$(dirname "$UNISON_PROFILE_PATH")"
+
 
 SYNC_CONFIG="# Roots of the synchronization (Local and Remote)
 root = /etc/asterisk
-root = ssh://root@10.24.49.193//etc/asterisk
+root = ssh://$REMOTE_SERVER//etc/asterisk
 
 # Paths to explicitly include (keeps the rest of /etc/asterisk ignored)
 path = extensions.conf
@@ -55,5 +56,7 @@ echo "$SYNC_CONFIG" | sudo tee -a ~/.unison/asterisk_sync.prf
 
 # Perform First Sync
 echo "[+] SYNC "
-sudo bash Sync_Primary_to_Secondary.sh
+sudo cp Sync_Secondary_to_Primary.sh routes/sync_asterisk.sh
+chmod +x /home/exch2/asteriskGUI/routes/sync_asterisk.sh
+sudo bash routes/sync_asterisk.sh
 

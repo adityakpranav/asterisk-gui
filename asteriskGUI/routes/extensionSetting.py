@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 from schemas import AMICommandRequest, ExtensionCreateRequest, ExtensionModifyRequest, ExtensionDeleteRequest
 from asterisk_worker import ami_manager
 from amiCommandHelper import get_ami_command
-
+from syncCRUD import run_asterisk_sync 
 # Ensure router is instantiated at top of file if not already
 router = APIRouter()
 
@@ -57,8 +57,10 @@ async def create_new_extension(payload: ExtensionCreateRequest):
             
             command_payload.command["Action"] = "reload_dialplan"
             await execute_ami_command(command_payload)
-                        
-            return {"status": "success", "message": f"Extension from {numStart} to {eachNum} successfully created in PBX pool configuration context.","response":all_response}      
+
+            # Sync data
+            success, output = await run_asterisk_sync()
+            return {"status": "success", "message": f"Extension from {numStart} to {eachNum} successfully created in PBX pool configuration context.","response":str(all_response),"sync":output}      
         else:
         
             # Creation of 1 Extension
@@ -93,8 +95,10 @@ async def create_new_extension(payload: ExtensionCreateRequest):
             command_payload.command["Action"] = "reload_dialplan"
             await execute_ami_command(command_payload)
             
-            
-            return {"status": "success", "response": f"Extension {numStart} successfully created in PBX pool configuration context.","message":str(all_response)}
+            # Sync data
+            success, output = await run_asterisk_sync()
+
+            return {"status": "success", "message": f"Extension {numStart} successfully created in PBX pool configuration context.","response":str(all_response),"sync":output}
     except Exception as e:
         return {"status": "error", "message": f"Backend pipeline creation error exception: {str(e)}"}
 
@@ -145,7 +149,10 @@ async def modify_existing_extension(payload: ExtensionModifyRequest):
         command_payload = AMICommandRequest(dc="N",command={"Action": "reload_dialplan","Param": {}}) 
         all_response["reload_dialplan"] = await execute_ami_command(command_payload)
 
-        return {"status": "success", "message": f"Extension {num} successfully modified in Main Exchange configuration context.","response":str(all_response)}    
+        # Sync data
+        success, output = await run_asterisk_sync()
+
+        return {"status": "success", "message": f"Extension {num} successfully modified in Main Exchange configuration context.","response":str(all_response),"sync":output}    
     except Exception as e:
         return {"status": "error", "message": f"Backend pipeline creation error exception: {str(e)}"}
 
@@ -226,8 +233,9 @@ async def delete_existing_extension(payload: ExtensionDeleteRequest):
         #print("all_response : ",all_response)
         print("Operation Complete")
 
-                        
-        return {"status": "success", "message": f"Extension from {numStart} to {eachNum} successfully deleted in PBX pool configuration context.","response":all_response}      
+        # Sync data
+        success, output = await run_asterisk_sync()                
+        return {"status": "success", "message": f"Extension from {numStart} to {eachNum} successfully deleted in PBX pool configuration context.","response":str(all_response),"sync":output}      
     except Exception as e:
         return {"status": "error", "message": f"Backend pipeline creation error exception: {str(e)}"}
 

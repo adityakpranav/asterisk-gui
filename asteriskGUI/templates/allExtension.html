@@ -30,7 +30,9 @@
                     </tr>
                 </thead>
                 <!-- Rows injected dynamically via fetchExtensions() below -->
-                <tbody id="directory-table-body" class="divide-y divide-slate-800/40"></tbody>
+                <tbody id="directory-table-body" class="divide-y divide-slate-800/40">
+                    <tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">Loading extensions roster matrix...</td></tr>
+                </tbody>
             </table>
         </div>
 		
@@ -39,12 +41,13 @@
 </div>
 
 <script>
+
     // Asynchronous Engine to run when tab is clicked from sidebar
-    function fetchExtensions() {
+    async  function fetchExtensions() {
         const tbody = document.getElementById("directory-table-body");
         if(!tbody) return;
         
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">Loading extensions roster matrix...</td></tr>`;
+        //tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">Loading extensions roster matrix...</td></tr>`;
         
         fetch("/extensions-data")
             .then(res => res.json())
@@ -106,4 +109,7 @@
         if (extInput) { extInput.value = num; extInput.readOnly = true; }
         if (nameInput) nameInput.value = name;
     }
+
+    const intervalId = setInterval(fetchExtensions, 10000);
+
 </script>
