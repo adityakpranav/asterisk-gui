@@ -12,3 +12,5 @@ AMI_OPR = "operator"
 AMI_OPR_SECRET = "operator@123"
 
 TOKENS = ["authenticated_pbx_manager_token","authenticated_pbx_operator_token"]
+
+# SERVER_DIR ="" added to this script Dynamically

@@ -16,6 +16,11 @@
         "Command": "module reload res_pjsip.so",
         "ActionID": "reload-wizard-now"
     },
+	"reload_pjsip_wizard": {
+        "Action": "Command",
+        "Command": "module reload res_pjsip_config_wizard.so",
+        "ActionID": "reload-wizard-now"
+    },
 	"reload_dialplan": {
 		"Action": "Command",
 		"Command": "dialplan reload",
@@ -57,11 +62,15 @@
 		"Action-000000": "append",
 		"Cat-000000": "{context}",
 		"Var-000000": "exten",
-		"Value-000000": ">{extension},1,Dial(PJSIP/{extension})",
+		"Value-000000": ">{extension},hint,PJSIP/{extension}",
 		"Action-000001": "append",
 		"Cat-000001": "{context}",
-		"Var-000001": "same",
-		"Value-000001": ">n,Hangup()"	
+		"Var-000001": "exten",
+		"Value-000001": ">{extension},1,Dial(PJSIP/{extension},Tt)",
+		"Action-000002": "append",
+		"Cat-000002": "{context}",
+		"Var-000002": "same",
+		"Value-000002": ">n,Hangup()"	
 	},
 	"modify_extension_password":{
         "Action": "UpdateConfig",
@@ -106,11 +115,11 @@
 		"Action-000000": "Delete",
 		"Cat-000000": "{context}",
 		"Var-000000": "exten",
-		"Value-000000": "{extension},1,Dial(PJSIP/{extension})",
+		"Value-000000": ">{extension},1,Dial(PJSIP/{extension},Tt)",
 	    "Action-000001": "Delete",
 		"Cat-000001": "{context}",
 		"Var-000001": "same",
-		"Match-000001": "n,Hangup()"
+		"Match-000001": ">n,Hangup()"
 	},
 	"delete_dialplan_byline":{
 		"Action": "UpdateConfig",
@@ -120,11 +129,15 @@
 		"Action-000000": "Delete",
 		"Cat-000000": "{context}",
 		"Var-000000": "same",
-		"Line-000000": "{line1}",
+		"Line-000000": "{line2}",
 		"Action-000001": "Delete",
 		"Cat-000001": "{context}",
 		"Var-000001": "exten",
-		"Line-000001": "{line0}"
+		"Line-000001": "{line1}",
+		"Action-000002": "Delete",
+		"Cat-000002": "{context}",
+		"Var-000002": "exten",
+		"Line-000002": "{line0}"
 	},
 	"get_dialplan":{
 		"Action": "GetConfig",

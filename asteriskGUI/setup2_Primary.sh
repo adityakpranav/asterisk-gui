@@ -53,11 +53,13 @@ prefer = newer
 perms = 0"
 
 echo "$SYNC_CONFIG" | sudo tee -a ~/.unison/asterisk_sync.prf
+echo "SERVER_DIR = '$PWD'" | sudo tee -a config.py
+
 
 # Perform First Sync
 echo "[+] SYNC "
 
 sudo cp Sync_Primary_to_Secondary.sh routes/sync_asterisk.sh
-chmod +x /home/exch/asteriskGUI/routes/sync_asterisk.sh
+chmod +x $PWD/routes/sync_asterisk.sh
 sudo bash routes/sync_asterisk.sh
 

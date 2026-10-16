@@ -129,5 +129,5 @@ async def get_dashboard(request: Request):
     return templates.TemplateResponse(
         request=request, 
         name="base.html", 
-        context={"title": "Asterisk Dashboard", "status": "Connected","access":user}
+        context={"title": "NER PBX Dashboard", "status": "Connected","access":user}
     )

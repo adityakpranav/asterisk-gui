@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 from schemas import AMICommandRequest, ExtensionCreateRequest, ExtensionModifyRequest, ExtensionDeleteRequest
 from asterisk_worker import ami_manager
 from amiCommandHelper import get_ami_command
-from syncCRUD import run_asterisk_sync 
+from .syncCRUD import run_asterisk_sync 
 # Ensure router is instantiated at top of file if not already
 router = APIRouter()
 
@@ -200,7 +200,8 @@ async def delete_existing_extension(payload: ExtensionDeleteRequest):
                             "Param": {
                                 "context": context,
                                 "line0": match_line["line0"],
-                                "line1": match_line["line1"]
+                                "line1": match_line["line1"],
+                                "line2": match_line["line2"]
                             }
                         }
                     ) 
@@ -284,12 +285,13 @@ def find_extension_line(text_data, user_extension):
     
     # Search the text
     match = re.search(pattern, text_data)
-    line0 = match.group("index")
+    line1 = match.group("index")
     if match:
         return {
             "full_match": match.group(0),
-            "line0": int(line0) ,
-            "line1": int(line0)+1
+            "line0": int(line1)-1,
+            "line1": int(line1),
+            "line2": int(line1)+1
         }
     return None
 
