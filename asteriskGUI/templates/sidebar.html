@@ -3,23 +3,40 @@
     <div class="bg-slate-900/40 border border-slate-800/60 rounded-2xl p-4 backdrop-blur-md">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 px-2">Navigation Views</h3>
         <nav class="space-y-1">
-            <button onclick="switchWorkspaceView('monitor-view')" id="nav-monitor-view" 
-                class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all">
-                <i data-lucide="activity" class="w-4 h-4"></i> Live Monitor
-            </button>
-			
-			<button onclick="switchWorkspaceView('extensions-view')" id="nav-extensions-view" 
-                class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all">
-                <i data-lucide="users" class="w-4 h-4"></i> All Extensions
-            </button>
-            <button onclick="switchWorkspaceView('setting-view')" id="nav-setting-view" 
-                class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all">
-                <i data-lucide="settings" class="w-4 h-4"></i> Extension Setup
-            </button>
-			<button onclick="switchWorkspaceView('console-view')" id="nav-console-view" 
-                class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all">
-                <i data-lucide="console" class="w-4 h-4"></i> Console
-            </button>
+            {% if '1' in access or 1 in access %}
+                <button onclick="switchWorkspaceView('conf-view')" id="nav-conf-view" 
+                    class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all">
+                    <i data-lucide="activity" class="w-4 h-4"></i> Conference Monitor
+                </button>
+            {% endif %}
+            
+            {% if '2' in access or 2 in access %}
+                <button onclick="switchWorkspaceView('monitor-view')" id="nav-monitor-view" 
+                    class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all">
+                    <i data-lucide="activity" class="w-4 h-4"></i> Live Monitor
+                </button>
+            {% endif %}
+            
+			{% if '3' in access or 3 in access %}
+                <button onclick="switchWorkspaceView('extensions-view')" id="nav-extensions-view" 
+                    class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all">
+                    <i data-lucide="users" class="w-4 h-4"></i> All Extensions
+                </button>
+            {% endif %}
+
+            {% if '4' in access or 4 in access %}
+                <button onclick="switchWorkspaceView('setting-view')" id="nav-setting-view" 
+                    class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Extension Setup
+                </button>
+            {% endif %}
+            {% if '5' in access or 5 in access %}
+                <button onclick="switchWorkspaceView('console-view')" id="nav-console-view" 
+                    class="w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border border-transparent text-slate-400 hover:bg-slate-800/40 hover:text-slate-200 transition-all">
+                    <i data-lucide="console" class="w-4 h-4"></i> Console
+                </button>
+            {% endif %}
+
         </nav>
     </div>
 
@@ -70,7 +87,10 @@
 		});
 
 		const currentBtn = document.getElementById(`nav-${targetId}`);
-		if(targetId === 'monitor-view') {
+
+        currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all";
+
+		/*if(targetId === 'monitor-view') {
 			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all";
 		} else if(targetId === 'extensions-view') {
 			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-blue-500/10 text-blue-400 border-blue-500/20 transition-all";
@@ -78,9 +98,12 @@
 			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all";
 		}else if(targetId === 'setting-view') {
 			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all";
-		} else {
-			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-cyan-500/10 text-cyan-400 border-cyan-500/20 transition-all";
+		}else if(targetId === 'conf-view') {
+			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 transition-all";
 		}
+         else {
+			currentBtn.className = "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 border bg-cyan-500/10 text-cyan-400 border-cyan-500/20 transition-all";
+		}*/
 		
 		if (typeof refreshIcons === 'function') refreshIcons();
 	}

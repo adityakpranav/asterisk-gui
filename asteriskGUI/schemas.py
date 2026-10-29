@@ -33,3 +33,10 @@ class ExtensionDeleteRequest(BaseModel):
     numStart: str = Field(..., description="Extension number delete start")
     numEnd: str = Field(..., description="Extension number delete start")    
     dept: str = Field(..., description="Updated department")
+
+class ConfMuteUnmuteRequest(BaseModel):
+    # Field validation ensures the incoming value is a valid string handle
+    confRoom: str = Field(..., description="Conference Room number")
+    channelID: str = Field(..., description="Unique Asterisk channel identifier to drop")
+    isMute: int = Field(..., description="Mute: 1 , Unmute : 0")
+    

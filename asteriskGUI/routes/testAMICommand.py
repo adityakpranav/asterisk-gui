@@ -7,13 +7,28 @@ import json
 from fastapi import APIRouter, HTTPException
 from schemas import AMICommandRequest
 from asterisk_worker import ami_manager
-from amiCommandHelper import get_ami_command
+from amiCommandHelper import get_ami_command, execute_ami_command
 
 # Ensure router is instantiated at top of file if not already
 router = APIRouter()
 
 @router.post("/execute-ami")
 async def execute_raw_ami_command(payload: AMICommandRequest):
+    """
+    Executes an ad-hoc custom AMI action payload directly against Asterisk.
+    Returns the exact key-value string mapping returned by the core telephony engine.
+    """
+    try:
+        response = await execute_ami_command(payload)
+        return (response)
+    except Exception as e:
+        print(f"AMI command execution failed: {e}")
+        return {"status": "error", "output": f"Execution Error Exception Raised:\n{str(e)}"}
+
+
+    
+@router.post("/execute-ami-old")
+async def execute_raw_ami_command_old(payload: AMICommandRequest):
     """
     Executes an ad-hoc custom AMI action payload directly against Asterisk.
     Returns the exact key-value string mapping returned by the core telephony engine.

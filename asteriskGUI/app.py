@@ -106,12 +106,12 @@ async def disconnect_call(request: HangupRequest):
 
 
 # 3. Main Webpage Interface Layout
-@app.get("/", response_class=HTMLResponse)
-async def get_dashboard(request: Request):
-    return templates.TemplateResponse(
-        request=request, 
-        name="index_test.html", 
-        context={"title": "Asterisk Active Calls", "status": "Connected"}
-    )
+#@app.get("/", response_class=HTMLResponse)
+#async def get_dashboard(request: Request):
+#    return templates.TemplateResponse(
+#        request=request, 
+#        name="index_test.html", 
+#        context={"title": "Asterisk Active Calls", "status": "Connected"}
+#   )
     
 

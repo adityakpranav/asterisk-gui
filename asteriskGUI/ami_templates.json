@@ -173,6 +173,27 @@
         "Reload": "Yes",
         "Action-000000": "delcat",
         "Cat-000000": "{username}"
+	},
+	"list_active_rooms":{
+        "Action": "ConfbridgeListRooms",
+        "ActionID": "room-list-all"
+	},
+	"conf_room_participants":{
+		"Action": "ConfbridgeList",
+    	"Conference": "{confRoom}",
+		"ActionID": "room-list"
+	},
+	"mute_conf_participant":{
+		"Action": "ConfbridgeMute",
+		"Conference": "{confRoom}",
+		"Channel": "{channelID}",
+		"ActionID": "mute-action-1212"
+	},
+	"unmute_conf_participant":{
+		"Action": "ConfbridgeUnmute",
+		"Conference": "{confRoom}",
+		"Channel": "{channelID}",
+		"ActionID": "unmute-action-1212"
 	}
 	
 }

@@ -5,6 +5,7 @@ import config
 import datetime
 
 ACTIVE_CALLS = {}
+ACTIVE_CONF = {}
 ALL_EXTENSIONS = {}
 UPDATE_QUEUE = asyncio.Queue()
 
@@ -22,11 +23,9 @@ async def handle_call_events():
         channel = event.get('Channel', 'Unknown')
         caller_num = event.get('CallerIDNum', 'Unknown')
         caller_id = event.get('CallerIDName', 'Unknown')
-        
         callee_num = event.get('Exten', 'Unknown')
         callee_id = event.get('ConnectedLineName', ' ')
         channelstate = event.get('ChannelStateDesc', 'Active')
-        
         context = event.get('Context', ' ')
         
         if channelstate != "Down":
@@ -36,8 +35,11 @@ async def handle_call_events():
     @ami_manager.register_event('Newstate')
     def handle_state_change(manager, event):
         channel = event.get('Channel')
+        conference = event.get('Conference', '')
+        print("@ami_manager.register_event('Newstate') : ********  ",event)
         if channel in ACTIVE_CALLS:
             ACTIVE_CALLS[channel]["state"] = event.get('ChannelStateDesc', 'Active')
+            ACTIVE_CALLS[channel]["talking"] = event.get('TalkingStatus', '0')
             ACTIVE_CALLS[channel]["Channel"] = str(channel)
             ACTIVE_CALLS[channel]["event"] = str(event)
             ACTIVE_CALLS[channel]["callee_id"] = event.get('ConnectedLineName', ' ')
@@ -48,6 +50,7 @@ async def handle_call_events():
     @ami_manager.register_event('Hangup')
     def handle_hangup(manager, event):
         channel = event.get('Channel')
+
         if channel in ACTIVE_CALLS:
             del ACTIVE_CALLS[channel]
             asyncio.create_task(UPDATE_QUEUE.put("update"))
@@ -61,41 +64,38 @@ async def handle_call_events():
         if evt_name in ['PeerEntry', 'EndpointList', 'PeerStatus']:
             print(f"DEBUG [Asterisk raw event detected]: {evt_name} -> {dict(event)}")
 
-    # --- 2. LIVE ROSTER & REGISTRATION PACKET HANDLERS ---
-    @ami_manager.register_event('EndpointList')
-    def handle_pjsip_entry(manager, event):
-        """Triggers every time Asterisk streams a PJSIP record entry profile"""
-        ext_num = event.get('objectname', '')
-        if ext_num and ext_num != 'unknown':
-            dev_state = event.get('devicestate', '').lower()
-            ALL_EXTENSIONS[ext_num] = {
-                "num": ext_num,
-                "name": event.get('description') or f"Extension {ext_num}",
-                "dept": "Internal PBX",
-                "is_registered": dev_state not in ['unavailable', 'unknown', 'invalid']
-            }
+    @ami_manager.register_event('ConfbridgeTalking')
+    def handle_confbridge_talking(manager, event):
+        channel = event.get('Channel')
+        conference = event.get('Conference', '')
+        print("@ami_manager.register_event('ConfbridgeTalking') : ********  ",event)
+        # TalkingStatus parses as 'on' (Speaking) or '0' (Silent)
+        talking_status = event.get('TalkingStatus', '0')
+        is_talking = (talking_status == 'on')
 
-    @ami_manager.register_event('PeerEntry')
-    def handle_legacy_sip_entry(manager, event):
-        """Triggers every time Asterisk streams an older chan_sip peer entry"""
-        ext_num = event.get('objectname', '')
-        if ext_num and ext_num != 'unknown':
-            status = event.get('status', '').lower()
-            ALL_EXTENSIONS[ext_num] = {
-                "num": ext_num,
-                "name": f"SIP Line {ext_num}",
-                "dept": "Internal PBX",
-                "is_registered": "ok" in status or "monitored" in status
+        # If the channel is already tracked in active memory, update its metrics
+        if channel in ACTIVE_CALLS:
+            ACTIVE_CALLS[channel]["talking"] = is_talking
+            ACTIVE_CALLS[channel]["conference"] = conference
+            
+            # Put update directly onto queue to trigger downstream WebSocket broadcast
+            asyncio.create_task(UPDATE_QUEUE.put("update"))
+        
+        # Fallback: If a channel joined a bridge before registering via Newchannel
+        else:
+            ACTIVE_CALLS[channel] = {
+                "caller_num": event.get('CallerIDNum', 'Unknown'),
+                "callee_num": event.get('Exten', conference),
+                "state": "Up",
+                "answered_time": str(datetime.datetime.now()),
+                "Channel": str(channel),
+                "caller_id": event.get('CallerIDName', 'Unknown'),
+                "callee_id": ' ',
+                "Context": ' ',
+                "talking": is_talking,
+                "conference": conference
             }
-
-    @ami_manager.register_event('PeerStatus')
-    def handle_live_status_changes(manager, event):
-        """Dynamically patches registrations if a phone reboots or drops out"""
-        peer_raw = event.get('peer', '')
-        status = event.get('peerstatus', '').lower()
-        ext_num = peer_raw.split('/')[-1] if '/' in peer_raw else peer_raw
-        if ext_num in ALL_EXTENSIONS:
-            ALL_EXTENSIONS[ext_num]["is_registered"] = status in ['registered', 'reachable']
+            asyncio.create_task(UPDATE_QUEUE.put("update"))
 
     # Connect to Asterisk console socket
     await ami_manager.connect()
@@ -103,11 +103,11 @@ async def handle_call_events():
     
     # Send the action once at startup. Asterisk responds to these by broadcasting 
     # 'EndpointList' and 'PeerEntry' events, which our handlers above catch automatically.
-    try:
-        await ami_manager.send_action({'Action': 'PJSIPShowEndpoints'})
-        await ami_manager.send_action({'Action': 'SIPpeers'})
-    except Exception as e:
-        print(f"Roster initial command dispatch skipped: {e}")
+#    try:
+#        await ami_manager.send_action({'Action': 'PJSIPShowEndpoints'})
+#        await ami_manager.send_action({'Action': 'SIPpeers'})
+#    except Exception as e:
+#        print(f"Roster initial command dispatch skipped: {e}")
 
  
     # Stay in an infinite async sleep loop to keep the event listener thread alive

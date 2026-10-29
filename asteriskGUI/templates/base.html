@@ -49,24 +49,34 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
             <!-- LEFT COMPONENT: Sidebar Layout Core Module -->
-             {% if access == '0' or access == 0 %}
-                {% include 'sidebar.html' %}
-            {% else %}
-                {% include 'sidebar_view.html' %}
-            {% endif %}
+            {% include 'sidebar.html' %}
 
             <!-- RIGHT DYNAMIC COMPONENT CONTAINER PANEL -->
             <div class="lg:col-span-9">
                 <div id="dynamic-content-panel">
-                    {% block content %}
-                        <!-- This block fallbacks to rendering index_test.html unless overriden -->
-                        {% include 'streamcall.html' %}
-						{% include 'allExtension.html' %}
-						{% if access == '0' or access == 0 %}
-                            {% include 'extensionSetting.html' %}
-                            {% include 'testAMICommand.html' %}
-                        {% endif %}
-                    {% endblock %}
+                    
+                    <!-- This block fallbacks to rendering index_test.html unless overriden -->
+                    {% if 1 in access %}
+                        {% include 'streamConCall.html' %}    
+                    {% endif %}
+
+                    {% if 2 in access %}
+                        {% include 'streamcall.html' %}    
+                    {% endif %}
+
+                    {% if 3 in access %}
+                        {% include 'allExtension.html' %}
+                    {% endif %}
+
+                    {% if 4 in access %}
+                        {% include 'extensionSetting.html' %}
+                    {% endif %}
+
+                    {% if 5 in access %}
+                        {% include 'testAMICommand.html' %}
+                    {% endif %}
+
+                    
                 </div>
             </div>
 

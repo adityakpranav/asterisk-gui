@@ -79,6 +79,10 @@ sudo cp asterisk/pjsip_wizard.conf /etc/asterisk/pjsip_wizard.conf
 sudo cp asterisk/extensions.conf /etc/asterisk/extensions.conf
 sudo cp asterisk/logger.conf /etc/asterisk/logger.conf
 sudo cp asterisk/manager.conf /etc/asterisk/manager.conf
+sudo cp asterisk/modules.conf /etc/asterisk/modules.conf
+sudo cp asterisk/features.conf /etc/asterisk/features.conf
+sudo cp asterisk/confbridge.conf /etc/asterisk/confbridge.conf
+
 
 # 3. Allow Asterisk to Bind to a "Non-Local" IP
 sudo sysctl -w net.ipv4.ip_nonlocal_bind=1

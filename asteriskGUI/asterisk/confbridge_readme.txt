@@ -1,14 +1,11 @@
 
 
-
-
 ; extensions
 exten => 105,1,NoOp(Entering Conference Room 105)
  same => n,Answer()
  same => n,Playback(welcome)
  same => n,ConfBridge(105,default_bridge,default_user)
  same => n,Hangup()
-
 
 ; confbridge
 [default_bridge]

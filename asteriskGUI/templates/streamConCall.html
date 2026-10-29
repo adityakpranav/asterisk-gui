@@ -1,0 +1,366 @@
+
+		<style>
+			.Unmute-btn{
+				/* Set the path to your image */
+				/*background-image: url("{{ url_for('static', path='images/mute_button.png') }}");*/
+				background-image: url("{{ url_for('static', path='images/unmute_button.png') }}");
+				 
+				/* Prevent the image from repeating if it's smaller than the button */
+				background-repeat: no-repeat;
+
+				/* Scale the image to fit the button container perfectly */
+				background-size: cover;
+
+				/* Center the background image inside the button */
+				background-position: center;
+
+				/* Optional styling: size, text color, removes default border */
+				width: 30px;
+				height: 30px;
+				color: white;
+				border: none;
+				font-weight: bold;
+				cursor: pointer;
+			}
+
+			.Mute-btn{
+				background-image: url("{{ url_for('static', path='images/mute_button.png') }}");
+				
+				/* Prevent the image from repeating if it's smaller than the button */
+				background-repeat: no-repeat;
+
+				/* Scale the image to fit the button container perfectly */
+				background-size: cover;
+
+				/* Center the background image inside the button */
+				background-position: center;
+
+				/* Optional styling: size, text color, removes default border */
+				width: 30px;
+				height: 30px;
+				color: white;
+				border: none;
+				font-weight: bold;
+				cursor: pointer;
+			}
+		</style>
+
+		<!-- Main Conf Container -->
+		<div id="conf-view" class="workspace-view-panel space-y-8">
+			<h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
+                    Conference Call Monitor
+            </h1>
+			<!-- KPI Metrics Ribbon -->
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+				<div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4">
+					<div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">
+						<i data-lucide="activity" class="w-5 h-5"></i>
+					</div>
+					<div>
+						<p class="text-s font-medium text-slate-400 uppercase tracking-wider">Select Conference Room</p>
+						<select name="form-conf-room-sel" id="form-conf-room-id" class="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:border-cyan-500/50 text-slate-300 focus:outline-none transition-colors">
+							<!-- templates/exchange_Contexts.html -->
+							<!-- subelement of templates/extensionSettings.html -->
+							<!--Delete all not required Intercoms-->
+							<option value="">----</option>
+							<option value="105" selected>105</option>
+							<option value="109">109</option>
+					
+						</select>
+
+					</div>
+					<div>
+
+						<button onclick="realtimeSync(1)" type="submit" id="start-conf-btn" class="px-5 py-2.5 bg-gradient-to-r from-green-300 to-green-500 font-bold rounded-xl text-sm text-white shadow-lg shadow-cyan-500/10 hover:opacity-90 transition-all flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Start</button>
+						<button onclick="realtimeSync(0)" type="submit" id="stop-conf-btn" class="px-5 py-2.5 bg-gradient-to-r from-red-300 to-red-500 font-bold rounded-xl text-sm text-white shadow-lg shadow-cyan-500/10 hover:opacity-90 transition-all flex items-center gap-2 hidden"><i data-lucide="plus-circle" class="w-4 h-4"></i> Stop</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Main Card Section -->
+			<div class="bg-slate-900/40 border border-slate-800/60 shadow-2xl rounded-2xl overflow-hidden backdrop-blur-md">
+				<!-- Filter Actions Bar -->
+				<div class="p-6 border-b border-slate-800/80 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-slate-900/20">
+					<h1 class="text-xl font-bold text-slate-300 tracking-wide flex items-center gap-2">
+						Conference Participants 
+					</h1>
+					<!-- Search input for high volume environments -->
+					<div class="relative max-w-xs w-full">
+						<i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+						<input type="text" id="conf-search-bar" placeholder="Filter extension..." 
+							class="w-full pl-9 pr-4 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-emerald-500/50 transition-all text-slate-300 placeholder-slate-500">
+					</div>
+				</div>
+
+				<!-- Channels Table Container -->
+				<div class="overflow-x-auto">
+					<table class="w-full text-left border-collapse">
+						<thead>
+							<tr class="bg-slate-950/40 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800/80">
+								<th class="py-8 px-8 font-semibold">Room No.</th>
+								<th class="py-8 px-8 font-semibold">Extension</th>
+								<th class="py-8 px-8 font-semibold">Caller ID</th>
+								<th class="py-8 px-8 font-semibold hidden">Speaking</th>
+								<th class="py-8 px-8 font-semibold">Duration</th>
+								<th class="py-8 px-8 font-semibold">Mute</th>
+							</tr>
+						</thead>
+						<tbody id="conf-call-list" class="divide-y divide-slate-800/40">
+							<!-- Populated dynamically via Javascript EventSource -->
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Elegant Empty State -->
+				<div id="no-conf-calls" class="text-center py-16 text-slate-500 hidden flex flex-col items-center justify-center gap-3">
+					<div>
+						<h3 class="text-sm font-semibold text-slate-400"> </h3>
+						<p class="text-xs text-slate-500 mt-1"> </p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	<script>
+			const conf_callList = document.getElementById("conf-call-list");
+			const conf_noCalls = document.getElementById("no-conf-calls");
+			//const button = document.getElementById('myButton');
+			
+
+			/*
+			const eventSourceConf = new EventSource("/stream-conf-calls");
+			
+			
+			eventSourceConf.onmessage = function(event) {
+				const conf_calls = JSON.parse(event.data);
+				localCallsCache = conf_calls;
+
+				// Recalculate Summary Metrics
+				const upCount = conf_calls.filter(c => c.state === "Up").length;
+				statTotal.textContent = conf_calls.length;
+				statUp.textContent = upCount;
+				statPending.textContent = conf_calls.length - upCount;
+
+				//renderCalls(localCallsCache);
+			};
+			eventSourceConf.onerror = function() {
+				
+				console.log("Error in eventSourceConf")
+
+			};*/
+
+
+			function isEmpty(value) {
+				return !value || value.trim().length === 0;
+			}
+
+			async function fetchConfRoomParticipants() {
+				const confRoom = document.getElementById("form-conf-room-id").value;
+				if(!isEmpty(confRoom)){
+			
+					try {
+						const response = await fetch(`/getConfRoomParticipants?confRoom=${confRoom}`, {
+							method: 'GET' // Must match the Flask 'methods=['POST']' route rule
+						});
+						if (!response.ok) {
+         				   throw new Error(`HTTP error! status: ${response.status}`);
+        				}
+						const result = await response.json();
+						const jsObject = new Function(`return ${result.message}`)();
+						renderConfCalls(jsObject)
+						return result;
+					} catch (error) {
+						console.error("Network Failure:", error);
+					}
+				}
+			}
+
+
+			function renderConfCalls(calls) {
+				conf_callList.innerHTML = "";
+
+				conf_noCalls.classList.add("hidden");
+
+				calls.forEach(call => {
+					const row = document.createElement("tr");
+					row.className = "group text-sm hover:bg-slate-800/30 transition-all duration-150";
+					
+					// Enhanced Badge styles
+					const isUp = call.isTalking === "1";
+					const badgeStyle = isUp 
+						? "text-emerald-400" 
+						: "text-amber-400";
+					const interval_obj = {"answered_time":call.answeredTimeSeconds ,"interval_id":""};
+					
+					if(call.callerIdNum!="")
+						{
+						row.innerHTML = `
+
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<span class="w-1.5 h-1.5 rounded-full ${isUp ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+									${call.conference} 
+								</div>
+							</td>
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<span class="w-1.5 h-1.5 rounded-full ${isUp ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+									${call.callerIdNum} 
+								</div>
+							</td>
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<span class="w-1.5 h-1.5 rounded-full ${isUp ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+									${call.callerIdName} 
+								</div>
+							</td>
+							<td class="py-4 px-6 text hidden">
+								<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold tracking-wide shadow-sm uppercase ${badgeStyle}">
+									${call.isTalking==1?'&#128266;':""}
+								</span>
+							</td>							
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<span class="w-1.5 h-1.5 rounded-full ${isUp ? 'bg-emerald-400' : 'bg-amber-400'}"></span>
+									<div class="conf-live-duration" data-num=\"${call.callerIdNum}\" ></div>
+									<div class="hidden" id="conf-num-${call.callerIdNum}">${call.answeredTimeSeconds}</div>
+								</div>
+							</td>
+							<td class="py-4 px-6 font-mono text-sm tracking-wide text-slate-300 font-semibold group-hover:text-emerald-400 transition-colors">
+								<div class="flex items-center gap-2.5">
+									<button id="mute-unmute-button-id-${call.channel}" onclick="muteConfParticipant('${call.conference}','${call.channel}')" class=${call.isMuted? 'Mute-btn' : 'Unmute-btn' } ></button>
+								</div>
+							</td>
+							
+							`;
+						conf_callList.appendChild(row);
+						}
+				});
+				updateDuration_diff();
+			}
+
+
+			// Function to update duration time with setInterval
+			function updateDuration_diff(){
+				const confDurationDivs = document.querySelectorAll(".conf-live-duration");
+				const confDurationDivsVal = document.querySelectorAll(".conf-live-duration-val");
+
+				confDurationDivs.forEach((div) => {
+					
+					//const confTargetDatetime = div.dataset.datetime; 
+					//const confTargetNum = div.dataset.num;
+					const confTargetNumID = document.getElementById("conf-num-"+div.dataset.num);
+					div.textContent = duration_diff(confTargetNumID.innerHTML);
+					
+					setInterval(() => {
+						confTargetNumID.innerHTML = parseInt(confTargetNumID.innerHTML) + 1
+						div.textContent = duration_diff(confTargetNumID.innerHTML);
+					}, 1000);
+				});
+			}
+
+			function duration_diff(msDiffStr){
+				
+				let formatDate = "";
+				
+				if(msDiffStr == ""){
+					return("")
+				}
+				// 1. Total difference in milliseconds
+				let msDiff = parseInt(msDiffStr);
+
+				// 2. Cascade calculations down using Math.floor and remainder (%)
+				let days = Math.floor(msDiff / (60 * 60 * 24));
+				msDiff %= ( 60 * 60 * 24);
+
+				let hours = Math.floor(msDiff / ( 60 * 60));
+				msDiff %= ( 60 * 60);
+
+				let minutes = Math.floor(msDiff /60);
+				msDiff %= 60;
+
+				let seconds = Math.floor(msDiff);
+				
+				formatDate = `${minutes}m ${seconds}s`;
+				
+				if(hours != 0){
+					formatDate = `${hours}h ` + formatDate;
+					if(days!=0){
+						formatDate = `${days}d ` + formatDate;
+					}
+				}
+				//return(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+				return(formatDate);	
+			}
+
+			async function muteConfParticipant(confRoom,channelId) {
+				const mute_unmute_btn = document.getElementById('mute-unmute-button-id-'+channelId);
+				let isMute = 0;
+				if(mute_unmute_btn.className == "Unmute-btn"){
+					mute_unmute_btn.classList.remove('Unmute-btn');
+					mute_unmute_btn.classList.add('Mute-btn');
+					isMute = 1;
+					
+				}else{
+					mute_unmute_btn.classList.remove('Mute-btn');
+					mute_unmute_btn.classList.add('Unmute-btn');
+				}
+				
+				fetch("/muteUnmuteConfParticipant", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({confRoom: confRoom ,channelID: channelId,isMute: isMute })
+				})
+				.then(res => {
+					if (!res.ok) console.error("Failed to execute mute instruction.");
+				})
+				.catch(err => {
+					// Defensive catch block to intercept script injector errors
+					console.log("Network operation managed successfully:", err.message);
+				});
+			
+			}
+			// Create a dictionary object to store interval IDs
+			const intervals = {};
+			const start_button = document.getElementById("start-conf-btn");
+			const stop_button = document.getElementById("stop-conf-btn");
+
+
+			// Start an interval and store its ID with a specific key
+			const startInterval = (key, callback, delay) => {
+				// Clear any existing interval with the same key first
+				if (intervals[key]) {
+					clearInterval(intervals[key]);
+				}
+				intervals[key] = setInterval(callback, delay);
+			};
+
+			// Stop a specific interval using its key
+			const stopInterval = (key) => {
+				if (intervals[key]) {
+					clearInterval(intervals[key]);
+					delete intervals[key]; // Optional: remove the key from the dictionary
+				}
+			};
+
+			// operation :- 1 : start ; 0 : stop
+			// room :- room number as key
+			async function realtimeSync(operation){
+				
+				if(operation == 1){
+					start_button.classList.add("hidden");
+					stop_button.classList.remove("hidden");
+					// first call on click
+					fetchConfRoomParticipants();
+
+					startInterval("room", () => {
+						fetchConfRoomParticipants();
+					}, 4000);
+				}else{
+					start_button.classList.remove("hidden");
+					stop_button.classList.add("hidden");
+					stopInterval("room");
+				}
+			}
+
+		</script>

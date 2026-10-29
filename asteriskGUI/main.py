@@ -11,7 +11,7 @@ import datetime
 from schemas import HangupRequest 
 
 
-from routes import web, streamCall, telephony, testAMICommand, extensionSetting
+from routes import web, streamCall, telephony, testAMICommand, extensionSetting, streamConfCall
 from asterisk_worker import handle_call_events
 
 app = FastAPI(title="Asterisk PBX")
@@ -25,6 +25,7 @@ app.include_router(streamCall.router)
 app.include_router(telephony.router)
 app.include_router(testAMICommand.router)
 app.include_router(extensionSetting.router)
+app.include_router(streamConfCall.router)
 
 
 @app.on_event("startup")

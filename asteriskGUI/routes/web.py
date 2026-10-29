@@ -14,44 +14,23 @@ from panoramisk import Manager
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
     
-    
-'''
-@router.get("/", response_class=HTMLResponse)
-async def get_dashboard(request: Request):
-    """
-    Serves the main real-time dashboard frontend.
-    Passes initial rendering parameters down to Jinja2 context templates.
-    """
-    return templates.TemplateResponse(
-        request=request, 
-        name="base.html", 
-        context={"title": "Asterisk Dashboard", "status": "Connected"}
-    )
-'''
 
-ADMIN_USER = config.AMI_USER
-ADMIN_PASS = config.AMI_SECRET
-
-OPERATOR_USER = config.AMI_OPR
-OPERATOR_PASS = config.AMI_OPR_SECRET
-
-VALID_TOKENS = config.TOKENS
+USER_DATA = config.USER_DATA
+TOKEN_USER = config.TOKEN_USER
 
 # Helper check dependency function to validate session status cookies
 def get_current_user(request: Request):
     
-    print("request.cookies : ",request.cookies)
     session_token = request.cookies.get("session_auth_token",None)
     print("session_token : ",session_token)
     
     # Redirect target boundary exception to cleanly force page shifts if intercept fails
-    if not session_token or session_token not in VALID_TOKENS:
+    if not session_token or session_token not in TOKEN_USER:
         return None
 
-    if session_token == VALID_TOKENS[0]:
-        return ADMIN_USER
+    login_User = TOKEN_USER.get(session_token,None)
 
-    return OPERATOR_USER
+    return login_User
 
 # Render Login view
 @router.get("/login", response_class=HTMLResponse)
@@ -76,33 +55,24 @@ async def execute_login_authentication(
     username: str = Form(...),
     password: str = Form(...)
 ):
-    if username == ADMIN_USER and password == ADMIN_PASS:
-        # Create redirect response payload
-        res_payload = {"status": "success", "message": "Console session verification achieved.","user":"0"}
+
+    username_exist = USER_DATA.get(username,None)
+    print("username_exist : ",username_exist)
+    if username_exist and username_exist.get("pass",None) == password:
+        # if user Exist and password matched
+
+        res_payload = {"status": "success", "message": "Console session verification achieved.","user":username_exist,"access":username_exist.get("access",[])}
         
         # Instantiate a secure HTTPOnly session cookie token inside the client web browser
         response.set_cookie(
             key="session_auth_token", 
-            value=VALID_TOKENS[0],
+            value=username_exist.get("token",None),
             httponly=True,       # Prevents JavaScript XSS attack vectors from reading session state data
             max_age=28800,       # Automatic session expiration window set to 8 Hours
             samesite="lax"
         )
         return res_payload
-    
-    elif username == OPERATOR_USER and password == OPERATOR_PASS:
-        # Create redirect response payload
-        res_payload = {"status": "success", "message": "Console session verification achieved.","user":"1"}
-        
-        # Instantiate a secure HTTPOnly session cookie token inside the client web browser
-        response.set_cookie(
-            key="session_auth_token", 
-            value=VALID_TOKENS[1],
-            httponly=True,       # Prevents JavaScript XSS attack vectors from reading session state data
-            max_age=28800,       # Automatic session expiration window set to 8 Hours
-            samesite="lax"
-        )
-        return res_payload
+
         
     # Throw structured error handling to form capture
     raise HTTPException(status_code=401, detail="Invalid administrative connection credentials.")
@@ -123,11 +93,12 @@ async def get_dashboard(request: Request):
     current_user = get_current_user(request)
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
-
-    user = current_user == OPERATOR_USER
+    
+    data_context = {"title": "NER PBX Dashboard", "status": "Connected","user":current_user,"access":USER_DATA.get(current_user).get("access",[])}
+    
     # 2. Render Main Page for 
     return templates.TemplateResponse(
         request=request, 
         name="base.html", 
-        context={"title": "NER PBX Dashboard", "status": "Connected","access":user}
+        context=data_context
     )
