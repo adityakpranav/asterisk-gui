@@ -36,7 +36,7 @@ async def handle_call_events():
     def handle_state_change(manager, event):
         channel = event.get('Channel')
         conference = event.get('Conference', '')
-        print("@ami_manager.register_event('Newstate') : ********  ",event)
+        #print("@ami_manager.register_event('Newstate') : ********  ",event)
         if channel in ACTIVE_CALLS:
             ACTIVE_CALLS[channel]["state"] = event.get('ChannelStateDesc', 'Active')
             ACTIVE_CALLS[channel]["talking"] = event.get('TalkingStatus', '0')
@@ -68,7 +68,7 @@ async def handle_call_events():
     def handle_confbridge_talking(manager, event):
         channel = event.get('Channel')
         conference = event.get('Conference', '')
-        print("@ami_manager.register_event('ConfbridgeTalking') : ********  ",event)
+        #print("@ami_manager.register_event('ConfbridgeTalking') : ********  ",event)
         # TalkingStatus parses as 'on' (Speaking) or '0' (Silent)
         talking_status = event.get('TalkingStatus', '0')
         is_talking = (talking_status == 'on')
