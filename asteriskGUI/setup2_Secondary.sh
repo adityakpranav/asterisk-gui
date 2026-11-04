@@ -41,6 +41,7 @@ root = ssh://$REMOTE_SERVER//etc/asterisk
 # Paths to explicitly include (keeps the rest of /etc/asterisk ignored)
 path = extensions.conf
 path = pjsip_wizard.conf
+path = pjsip.conf
 
 # Automation and Silencing settings
 auto = true

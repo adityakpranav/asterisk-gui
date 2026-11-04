@@ -14,4 +14,3 @@ if [ $? -eq 0 ]; then
     # Reload Local Primary Asterisk
     ssh $REMOTE_SSH_SERVER "chmod 777 /etc/asterisk/ -R"
 fi
-

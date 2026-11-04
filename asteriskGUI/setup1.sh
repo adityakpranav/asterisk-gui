@@ -59,7 +59,13 @@ fi
 echo " ****************** Installing Required files **************** "
 
 sudo apt install -y \
-		asterisk sngrep keepalived build-essential
+		sngrep keepalived build-essential
+
+sudo apt install ./asterisk/asterisk_22.5.2~dfsg+~cs6.15.60671435-1_amd64.deb
+
+sudo apt install ./asterisk/asterisk-modules_22.5.2~dfsg+~cs6.15.60671435-1_amd64.deb
+
+
 sudo apt autoremove -y
 
 

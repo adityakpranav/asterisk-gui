@@ -30,8 +30,9 @@
                     </tr>
                 </thead>
                 <!-- Rows injected dynamically via fetchExtensions() below -->
+                 <!--  Default content of tbody : <tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">Loading extensions roster matrix...</td></tr> -->
                 <tbody id="directory-table-body" class="divide-y divide-slate-800/40">
-                    <tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">Loading extensions roster matrix...</td></tr>
+                    
                 </tbody>
             </table>
         </div>
@@ -42,9 +43,9 @@
 
 <script>
 
+    const tbody = document.getElementById("directory-table-body");
     // Asynchronous Engine to run when tab is clicked from sidebar
     async  function fetchExtensions() {
-        const tbody = document.getElementById("directory-table-body");
         if(!tbody) return;
         
         //tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">Loading extensions roster matrix...</td></tr>`;
@@ -59,7 +60,7 @@
                     return;
                 }
 
-                extensions.forEach(ext => {
+                /*extensions.forEach(ext => {
                     const tr = document.createElement("tr");
                     tr.className = "directory-row hover:bg-slate-950/40 transition-colors duration-150 border-b border-slate-800/30";
                     
@@ -79,8 +80,8 @@
                        
                     `;
                     tbody.appendChild(tr);
-                });
-                
+                });*/
+                displayTableData(extensions); 
                 if (typeof refreshIcons === 'function') refreshIcons();
             })
             .catch(err => {
@@ -102,14 +103,68 @@
         });
     }
 
-    function editExtension(num, name, dept) {
-        switchWorkspaceView('settings-view');
-        const extInput = document.querySelector('input[placeholder="e.g. 1005"]');
-        const nameInput = document.querySelector('input[placeholder="e.g. Technical Helpdesk"]');
-        if (extInput) { extInput.value = num; extInput.readOnly = true; }
-        if (nameInput) nameInput.value = name;
+    const intervalId = setInterval(fetchExtensions, 10000);
+
+
+
+    async  function displayTableData(extensions) {
+        
+        try {
+            if (extensions.status === "success") {
+                // Initialize DataTables with your 2,000 row payload array
+                //$('#channelsTable').DataTable({
+                tbody.DataTable({
+                    data: extensions.data,
+                    deferRender: true, // CRUCIAL: Only creates HTML elements for the visible page (super fast!)
+                    pageLength: 25,    // Displays 25 records per page to keep DOM shallow
+                    columns: [
+                        { data: 'callerIdNum' },
+                        { data: 'channel' },
+                        { data: 'conference' },
+                        { data: 'channelState' },
+                        { 
+                            data: 'isTalking',
+                            render: (data) => data ? '🎙️ Speaking' : '💤 Silent'
+                        }
+                    ]
+                });
+            }
+        } catch (error) {
+            console.error("Failed to load channel rows:", error);
+        }
     }
 
-    const intervalId = setInterval(fetchExtensions, 10000);
+
+    /*
+    document.addEventListener("DOMContentLoaded", async () => {
+        const apiUrl = 'http://127.0.0';
+
+        try {
+            const response = await fetch(apiUrl);
+            const result = await response.json();
+
+            if (result.status === "success") {
+                // Initialize DataTables with your 2,000 row payload array
+                $('#channelsTable').DataTable({
+                    data: result.data,
+                    deferRender: true, // CRUCIAL: Only creates HTML elements for the visible page (super fast!)
+                    pageLength: 25,    // Displays 25 records per page to keep DOM shallow
+                    columns: [
+                        { data: 'callerIdNum' },
+                        { data: 'channel' },
+                        { data: 'conference' },
+                        { data: 'channelState' },
+                        { 
+                            data: 'isTalking',
+                            render: (data) => data ? '🎙️ Speaking' : '💤 Silent'
+                        }
+                    ]
+                });
+            }
+        } catch (error) {
+            console.error("Failed to load channel rows:", error);
+        }
+    });
+    */
 
 </script>

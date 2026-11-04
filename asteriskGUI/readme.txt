@@ -16,5 +16,25 @@
 # 6. Convert setup1.sh in required format : "dos2unix setup1.sh"
 # 7. Then Run : "bash setup1.sh"
 
+##### Reinstall Errors 
+### Realtime Sync : create SSH key again in both server
+## 
+## (S1 & S2)File : nano /etc/ssh/sshd_config 
+## Change: 
+##           #PermitRootLogin prohibit-password
+##            PermitRootLogin yes
+##            PasswordAuthentication yes
+##
+
+### clean ssh-keygen history in both server 
+##  S1 : sudo ssh-keygen -f '/root/.ssh/known_hosts' -R '< S2 IP >'
+##  S2 : sudo ssh-keygen -f '/root/.ssh/known_hosts' -R '< S1 IP >'
+##
+
+### setup history in both server 
+## sudo unison asterisk_sync
+
+
+
 
 

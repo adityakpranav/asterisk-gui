@@ -30,7 +30,7 @@ fi
 
 
 sudo mkdir -p ~/.unison
-UNISON_PROFILE_PATH="$HOME/.unison/asterisk.prf" 
+UNISON_PROFILE_PATH="$HOME/.unison/asterisk_sync.prf" 
 mkdir -p "$(dirname "$UNISON_PROFILE_PATH")"
 
 
@@ -41,6 +41,8 @@ root = ssh://$REMOTE_SERVER//etc/asterisk
 # Paths to explicitly include (keeps the rest of /etc/asterisk ignored)
 path = extensions.conf
 path = pjsip_wizard.conf
+path = pjsip.conf
+path = confbridge.conf
 
 # Automation and Silencing settings
 auto = true

@@ -34,4 +34,4 @@ chronyc tracking
 
 sudo date
 
-sudo timedatectl set-local-rtc 0
+sudo timedatectl set-local-rtc 0  
