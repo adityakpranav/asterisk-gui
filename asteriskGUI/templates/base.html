@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title|default("Asterisk Dashboard") }}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='css/dataTables.min.css') }}">
+    <script src="{{ url_for('static', path='js/jquery-4.0.0.min.js') }}"></script>
+    <script src="{{ url_for('static', path='js/dataTables.min.js') }}"></script>
+     
+    
     <!-- Loaded Tailwind CSS Play CDN & Lucide Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com"></script>
-    <link rel="stylesheet" href="https://datatables.net">
-    <script src="https://jquery.com"></script>
-    <script src="https://datatables.net"></script>
+    
+    
 </head>
 <body class="bg-[#0b0f19] text-slate-100 min-h-screen antialiased">
 

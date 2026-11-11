@@ -10,20 +10,14 @@
                 </h1>
                 <p class="text-xs text-slate-500 mt-1">Complete registered device statuses across internal network trunks.</p>
             </div>
-            <div class="relative max-w-xs w-full">
-                <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                <input type="text" id="directory-search" placeholder="Filter roster list..." 
-                    class="w-full pl-9 pr-4 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-blue-500/50 text-slate-300 placeholder-slate-500"
-                    oninput="filterDirectoryRoster()">
-            </div>
         </div>
 
         <!-- Roster Data Grid Table -->
         <div class="overflow-x-auto w-full">
-            <table class="w-full text-left border-collapse table-auto">
+            <table id="directory-table" class="w-full text-left border-collapse table-auto">
                 <thead>
                     <tr class="bg-slate-950/40 text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-800/80">
-                        <th class="py-4 px-8 font-semibold">Extension Number</th>
+                        <th class="py-4 px-8 font-semibold" style="text-align: left;">Extension Number</th>
                         <th class="py-4 px-6 font-semibold">SIP detail</th>
                         <th class="py-4 px-6 font-semibold">Status</th>
                         
@@ -41,9 +35,45 @@
     </div>
 </div>
 
+
+<style>
+    table.dataTable th.dt-type-numeric,
+    table.dataTable th.dt-column-title,
+    table.dataTable td.dt-type-numeric {
+        text-align: center !important;
+    }
+
+    
+    table.dataTable div.dt-paging a.paginate_button.next {
+        background-color: #007bff !important; /* Blue background */
+        color: #ffffff !important;            /* White text */
+        border-radius: 4px;                   /* Rounded corners */
+        padding: 6px 12px;
+        border: 1px solid #0069d9;
+    }
+
+    /* Style the Next button on Hover */
+    table.dataTable div.dt-paging a.paginate_button.next:hover {
+        background-color: #0056b3 !important; /* Darker blue on hover */
+        color: #ffffff !important;
+        cursor: pointer;
+    }
+
+    /* Style the Next button when it is Disabled (e.g., on the last page) */
+    table.dataTable div.dt-paging a.paginate_button.next.disabled,
+    table.dataTable div.dt-paging a.paginate_button.next.disabled:hover {
+        background-color: #e9ecef !important; /* Light grey background */
+        color: #6c757d !important;            /* Muted text color */
+        border-color: #dee2e6;
+        cursor: not-allowed;                  /* Shows block icon on hover */
+    }
+
+</style>
+
 <script>
 
     const tbody = document.getElementById("directory-table-body");
+    let intervalId;
     // Asynchronous Engine to run when tab is clicked from sidebar
     async  function fetchExtensions() {
         if(!tbody) return;
@@ -53,34 +83,6 @@
         fetch("/extensions-data")
             .then(res => res.json())
             .then(extensions => {
-                tbody.innerHTML = "";
-                
-                if(extensions.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500 text-sm">No configured extensions discovered inside Asterisk.</td></tr>`;
-                    return;
-                }
-
-                /*extensions.forEach(ext => {
-                    const tr = document.createElement("tr");
-                    tr.className = "directory-row hover:bg-slate-950/40 transition-colors duration-150 border-b border-slate-800/30";
-                    
-                    const statusBadge = ext.is_registered 
-                        ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Registered</span>`
-                        : `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-slate-500/10 text-slate-400 border-slate-800 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> Unregistered</span>`;
-
-					const sip_details = ext.Contacts
-					    ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> ${ext.Contacts}</span>`
-                        : `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-slate-500/10 text-slate-400 border-slate-800 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> --</span>`;
-
-                    tr.innerHTML = `
-                        <td class="py-4 px-8 font-mono text-sm font-semibold text-slate-200 search-field-num">${ext.num}</td>
-                        <td class="py-4 px-6">${sip_details}</td>
-                       
-                        <td class="py-4 px-6">${statusBadge}</td>
-                       
-                    `;
-                    tbody.appendChild(tr);
-                });*/
                 displayTableData(extensions); 
                 if (typeof refreshIcons === 'function') refreshIcons();
             })
@@ -103,68 +105,129 @@
         });
     }
 
-    const intervalId = setInterval(fetchExtensions, 10000);
+    // old table data
+    async  function displayTableData_OLD(extensions) {
+            
+        extensions.forEach(ext => {
+                    const tr = document.createElement("tr");
+                    tr.className = "directory-row hover:bg-slate-950/40 transition-colors duration-150 border-b border-slate-800/30";
+                    
+                    const statusBadge = ext.is_registered 
+                        ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Registered</span>`
+                        : `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-slate-500/10 text-slate-400 border-slate-800 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> Unregistered</span>`;
 
+					const sip_details = ext.Contacts
+					    ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> ${ext.Contacts}</span>`
+                        : `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-slate-500/10 text-slate-400 border-slate-800 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> --</span>`;
 
+                    tr.innerHTML = `
+                        <td class="py-4 px-8 font-mono text-sm font-semibold text-slate-200 search-field-num">${ext.num}</td>
+                        <td class="py-4 px-6">${sip_details}</td>
+                       
+                        <td class="py-4 px-6">${statusBadge}</td>
+                       
+                    `;
+                    tbody.appendChild(tr);
+            });
 
+    }
+    
+    
     async  function displayTableData(extensions) {
         
+        if ($.fn.DataTable.isDataTable('#directory-table')) {
+            const datatable = $('#directory-table').DataTable();
+            datatable.clear();
+            datatable.rows.add(extensions);
+            datatable.draw(false);
+            return;
+        }
+     
         try {
-            if (extensions.status === "success") {
-                // Initialize DataTables with your 2,000 row payload array
-                //$('#channelsTable').DataTable({
-                tbody.DataTable({
-                    data: extensions.data,
-                    deferRender: true, // CRUCIAL: Only creates HTML elements for the visible page (super fast!)
-                    pageLength: 25,    // Displays 25 records per page to keep DOM shallow
-                    columns: [
-                        { data: 'callerIdNum' },
-                        { data: 'channel' },
-                        { data: 'conference' },
-                        { data: 'channelState' },
-                        { 
-                            data: 'isTalking',
-                            render: (data) => data ? '🎙️ Speaking' : '💤 Silent'
-                        }
-                    ]
-                });
-            }
+ 
+            $("#directory-table").DataTable({
+                data: extensions,
+                deferRender: true, // CRUCIAL: Only creates HTML elements for the visible page (super fast!)
+                pageLength: 20,    // Displays 25 records per page to keep DOM shallow
+                order: [[0, "asc"]], // Sort by Caller ID initially
+                layout: {
+                    topStart: {
+								 search:null,
+								 paging: {
+									buttons: 3
+									}
+								},  
+                    topEnd: ['info','pageLength'], 
+                    bottomStart:null, 
+                    bottomEnd: null,
+                    language:{
+                        paginate: {
+                            next: 'Next Page →',     
+                            previous: '← Prev'       
+                        }     
+                    }   
+                },
+                columns: [
+                            { 
+                                data: 'num',
+                                className: 'py-4 px-8 font-mono text-sm font-semibold text-slate-200 search-field-num text-left',
+                                render: function(data, type, row) {
+                                    if (data) {
+                                        return `${data}`;
+                                    }
+                                }
+                            },
+                            { 
+                                data: 'Contacts',
+                                className: 'py-4 px-6',
+                                // =====================================================================
+                                // CONDITIONAL RENDERING FOR THE CONTACTS COLUMN
+                                // =====================================================================
+                                render: function(data, type, row) {
+                                    if (data) {
+                                        if (row.is_registered) {
+                                            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> ${data}</span>`;
+                                        } else {
+                                            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-amber-500/10 text-amber-400 border-amber-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span> ${data} (Offline)</span>`;
+                                        }
+                                    }
+                                    return `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-slate-500/10 text-slate-400 border-slate-800 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> --</span>`;
+                                }
+                            },
+                            { 
+                                data: 'is_registered',
+                                className: 'py-4 px-6',
+                                render: function(data, type, row) {
+                                    return data 
+                                        ? `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Registered</span>`
+                                        : `<span class="px-2.5 py-1 text-xs font-semibold rounded-lg border bg-slate-500/10 text-slate-400 border-slate-800 flex items-center gap-1.5 w-fit"><span class="h-1.5 w-1.5 rounded-full bg-slate-500"></span> Unregistered</span>`;
+                                }
+                            }
+                        ],
+                createdRow: function(row, data, dataIndex) {
+                    $(row).addClass("directory-row hover:bg-slate-950/40 transition-colors duration-150 border-b border-slate-800/30");
+                    
+                    // Pro-Tip: Attach a custom lookup key data attribute so your WebSockets can find this row in memory instantly
+                    $(row).attr('data-extension', data.num);
+                }
+            });
+            
         } catch (error) {
             console.error("Failed to load channel rows:", error);
         }
     }
+    
+    
+    // Load files only after all pkg fetched 
+    $(document).ready(function() {
 
-
-    /*
-    document.addEventListener("DOMContentLoaded", async () => {
-        const apiUrl = 'http://127.0.0';
-
-        try {
-            const response = await fetch(apiUrl);
-            const result = await response.json();
-
-            if (result.status === "success") {
-                // Initialize DataTables with your 2,000 row payload array
-                $('#channelsTable').DataTable({
-                    data: result.data,
-                    deferRender: true, // CRUCIAL: Only creates HTML elements for the visible page (super fast!)
-                    pageLength: 25,    // Displays 25 records per page to keep DOM shallow
-                    columns: [
-                        { data: 'callerIdNum' },
-                        { data: 'channel' },
-                        { data: 'conference' },
-                        { data: 'channelState' },
-                        { 
-                            data: 'isTalking',
-                            render: (data) => data ? '🎙️ Speaking' : '💤 Silent'
-                        }
-                    ]
-                });
-            }
-        } catch (error) {
-            console.error("Failed to load channel rows:", error);
+        if (!window.jQuery || typeof $.fn.DataTable === 'undefined') {
+            console.error("CRITICAL: DataTables script was not loaded. Check script paths.");
+            return;
+        }else{
+            //intervalId = setInterval(fetchExtensions, 10000);
         }
+
     });
-    */
 
 </script>
