@@ -3,12 +3,14 @@
 import json
 from schemas import AMICommandRequest
 from asterisk_worker import ami_manager
+from config import AMI_TEMPLATE_FILE
 
 # 2. Reusable helper function to inject variables and format the dictionary
 def get_ami_command(template_name,kwargs=None):
     
     # 1. Load your templates safely into memory
-    with open("ami_templates.json", "r") as f:
+    #with open("ami_templates.json", "r") as f:
+    with open(AMI_TEMPLATE_FILE, "r") as f:
         ami_templates = json.load(f)
     
     # Replace all placeholders with your active variables

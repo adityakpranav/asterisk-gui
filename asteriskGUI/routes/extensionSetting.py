@@ -19,7 +19,7 @@ async def create_new_extension(payload: ExtensionCreateRequest):
         
         numStart = int(payload.numStart)
         numEnd = payload.numEnd
-        
+        context = payload.dept.split("-")[0]
         all_response = {}
         if numEnd:
             # Bulk Extension Creation
@@ -34,7 +34,8 @@ async def create_new_extension(payload: ExtensionCreateRequest):
                         "Action": "create_extension",
                         "Param": {
                             "context-template": payload.dept, 
-                            "context": payload.dept.split("-")[0],
+                            "context": context,
+                            "profile": str(eachNum)+"_"+context,
                             "extension": eachNum,                  
                             "password": payload.passwd,
                             "callerid": eachNum
@@ -70,7 +71,8 @@ async def create_new_extension(payload: ExtensionCreateRequest):
                     "Action": "create_extension",
                     "Param": {
                         "context-template": payload.dept, 
-                        "context": payload.dept.split("-")[0],
+                        "context": context,
+                        "profile": str(numStart)+"_"+context,
                         "extension": numStart,                  
                         "password": payload.passwd,
                         "callerid": payload.callerid
@@ -113,6 +115,7 @@ async def modify_existing_extension(payload: ExtensionModifyRequest):
         
         num = int(payload.numStart)
         dept = payload.dept
+        profile = str(payload.numStart)+"_"+payload.dept.split("-")[0]
         update_val["callerid"] = payload.callerid
         update_val["password"] = payload.passwd
         
@@ -130,7 +133,8 @@ async def modify_existing_extension(payload: ExtensionModifyRequest):
                         "Action": f"modify_extension_{key}",
                         "Param": {
                             "context-template": dept, 
-                            "extension": num,                  
+                            "extension": num, 
+                            "profile":profile,                 
                             key: val
                         }
                     }
@@ -173,7 +177,7 @@ async def delete_existing_extension(payload: ExtensionDeleteRequest):
             
         for eachNum in range(numStart,numEnd+1,1):
             
-            
+            profile = str(eachNum)+"_"+context
             try:
                 # Dialplan Delete
                 #command_payload.command["Action"] = "delete_dialplan"
@@ -199,6 +203,7 @@ async def delete_existing_extension(payload: ExtensionDeleteRequest):
                             "Action": "delete_dialplan_byline",
                             "Param": {
                                 "context": context,
+                                "profile":profile,
                                 "line0": match_line["line0"],
                                 "line1": match_line["line1"],
                                 "line2": match_line["line2"]
@@ -217,6 +222,7 @@ async def delete_existing_extension(payload: ExtensionDeleteRequest):
                             "Action": "delete_extension",
                             "Param": {
                                 "context": context,
+                                "profile":profile,
                                 "extension": eachNum
                             }
                         }

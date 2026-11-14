@@ -8,6 +8,9 @@ AMI_PORT = int(os.getenv("ASTERISK_AMI_PORT", 5038))
 AMI_USER = os.getenv("ASTERISK_AMI_USER", "exch_gui")
 AMI_SECRET = os.getenv("ASTERISK_AMI_SECRET", "exch@63974")
 
+AMI_TEMPLATE_FILE = "ami_templates.json"
+#AMI_TEMPLATE_FILE = "ami_templates_V2.json"
+
 USER_DATA = {
     "admin":{"pass":"admin@63974",
              "access":[1,2,3,4,5],
@@ -30,14 +33,4 @@ TOKEN_USER = {
 }
 
 
-AMI_OPR = "operator"
-AMI_OPR_SECRET = "operator@123"
-AMI_OPR_ACCESS = [2]
-
-AMI_MAIN = "maintainer"
-AMI_MAIN_SECRET = "maintainer@62977"
-AMI_OPR_ACCESS = [1,2,3]
-
-TOKENS = ["authenticated_pbx_manager_token","authenticated_pbx_main_token","authenticated_pbx_operator_token"]
-
-# SERVER_DIR ="" added to this script Dynamically
+#SERVER_DIR ="/home/exch" #added to this script Dynamically
