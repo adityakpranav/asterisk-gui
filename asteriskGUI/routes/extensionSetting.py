@@ -42,6 +42,12 @@ async def create_new_extension(payload: ExtensionCreateRequest):
                         }
                     }
                 ) 
+
+                # Check Extension Exist
+                extension_state_response = await extension_state(context,eachNum)
+                if(extension_state_response!=-1):
+                    all_response[eachNum] = "Skipping! Extension already Exist"
+                    continue
                 
                 each_response = await execute_ami_command(command_payload)
                 all_response[eachNum] = each_response["output"]
@@ -63,7 +69,11 @@ async def create_new_extension(payload: ExtensionCreateRequest):
             success, output = await run_asterisk_sync()
             return {"status": "success", "message": f"Extension from {numStart} to {eachNum} successfully created in PBX pool configuration context.","response":str(all_response),"sync":output}      
         else:
-        
+
+            # Check Extension Exist
+            extension_state_response = await extension_state(context,numStart)
+            if(extension_state_response!=-1):
+                return {"status": "error", "message": f"Extension {numStart} Skipping! Extension already Exist","response":str(all_response),"sync":"Skipped"}
             # Creation of 1 Extension
             command_payload = AMICommandRequest(
                 dc="N",
@@ -301,3 +311,30 @@ def find_extension_line(text_data, user_extension):
         }
     return None
 
+
+
+async def extension_state(context,extension):
+    '''    
+    ## Output :
+    ##    Status : -1 (not Exist) 
+    ##              0 (Exist & Installed & Idle) 
+    ##              1 (Exist & Installed & InUse) 
+    ##              4 (Exist & Not Installed)
+    ## 
+    # '''
+
+    temp_command_payload = AMICommandRequest(
+        dc="N",
+        command={
+            "Action": "extension_state",
+            "Param": {
+                "context": context,
+                "extension":extension
+            }
+        }
+    ) 
+    
+    tmp_response = await execute_ami_command(temp_command_payload)
+    print("tmp_response : ",tmp_response)
+    return tmp_response["Status"]
+    

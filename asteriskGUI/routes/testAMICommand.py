@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from schemas import AMICommandRequest
 from asterisk_worker import ami_manager
 from amiCommandHelper import get_ami_command, execute_ami_command
+from .run_script import asterisk_restart , asterisk_status , keepalive_restart, keepalive_status, app_logs
 
 # Ensure router is instantiated at top of file if not already
 router = APIRouter()
@@ -24,6 +25,36 @@ async def execute_raw_ami_command(payload: AMICommandRequest):
     except Exception as e:
         print(f"AMI command execution failed: {e}")
         return {"status": "error", "output": f"Execution Error Exception Raised:\n{str(e)}"}
+
+@router.post("/execute-script")
+async def execute_raw_script_command(payload: AMICommandRequest):
+    """
+    Executes an ad-hoc custom AMI action payload directly against Asterisk.
+    Returns the exact key-value string mapping returned by the core telephony engine.
+    """
+    success, output = "",""
+    try:
+        if(payload.command["Action"]=="reload_asterisk"):
+            success, output = await asterisk_restart()
+
+        elif(payload.command["Action"]=="status_asterisk"):
+            success, output = await asterisk_status()
+
+        elif(payload.command["Action"]=="reload_keepalived"):
+            success, output = await keepalive_restart()
+
+        elif(payload.command["Action"]=="status_keepalived"):
+            success, output = await keepalive_status()
+
+        elif("logs" in payload.command["Action"]):
+            success, output = await app_logs(payload.command["Action"].split("_")[1],payload.command["Param"]["Option"],payload.command["Param"]["Value"])
+
+
+        return {"status": "success", "raw_output": success, "output":output}
+    except Exception as e:
+        print(f"script command execution failed: {e}")
+        return {"status": "error", "output": f"Execution Error Exception Raised:\n{str(e)}"}
+
 
 
     

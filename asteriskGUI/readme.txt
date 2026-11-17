@@ -33,6 +33,16 @@
 
 ### setup history in both server 
 ## sudo unison asterisk_sync
+#
+
+### LOgs check
+## Asterisk :   
+         systemctl status asterisk  : view asterisk realtime status
+         bash asterisk/check_asterisk_logs.sh : realtime active logs
+         tail -100 /var/log/asterisk/full   : log history
+         tail -100 /var/log/asterisk/messages.log   : log history
+         tail -100 /var/log/asterisk/cdr-csv/Master.csv   : CDR log
+
 
 
 

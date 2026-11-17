@@ -41,9 +41,12 @@
 						<span id="status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
 						<span id="status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
 					</span>
-					<span id="status" class="text-s font-semibold uppercase tracking-wider text-emerald-400">
-						Status: {{status}}
-					</span>
+					<div class="flex" style="flex-direction: column;">
+                        <span id="status" class="text-s font-semibold uppercase tracking-wider text-emerald-400">
+                            {{status}}
+                        </span>
+                        <span id="status-ip" class="text-xs font-semibold tracking-wider text-emerald-400">({{server_ip}})</span>
+                    </div>
 				</div>
 				
 				<a href="/logout" class="px-3 py-1.5 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 text-xs font-bold uppercase rounded-xl transition-all flex items-center gap-1.5">

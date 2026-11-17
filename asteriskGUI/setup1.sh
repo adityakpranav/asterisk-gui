@@ -101,6 +101,7 @@ sudo sysctl -p
 PRIMARY_IP="10.24.49.192"
 SECONDARY_IP="10.24.49.193"
 LOCAL_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}')
+echo "SERVER_IP = '$LOCAL_IP'" | sudo tee -a config.py
 
 # Determine local system operational cluster roles
 if [ "$LOCAL_IP" == "$PRIMARY_IP" ]; then

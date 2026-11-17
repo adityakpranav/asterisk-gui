@@ -35,6 +35,12 @@
 		"Command": "manager reload",
 		"ActionID": "reload-manager-subsystem"
 	},
+	"extension_state":{
+		"Action": "ExtensionState",
+		"ActionID": "100",
+		"Exten": "{extension}",
+		"Context": "{context}"
+	},
 	"create_extension": {
         "Action": "UpdateConfig",
         "SrcFilename": "pjsip_wizard.conf",

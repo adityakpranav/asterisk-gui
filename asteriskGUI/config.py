@@ -34,3 +34,4 @@ TOKEN_USER = {
 
 
 #SERVER_DIR ="/home/exch" #added to this script Dynamically
+#SERVER_IP = '10.24.49.192'

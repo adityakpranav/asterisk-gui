@@ -94,7 +94,7 @@ async def get_dashboard(request: Request):
     if not current_user:
         return RedirectResponse(url="/login", status_code=303)
     
-    data_context = {"title": "NER PBX Dashboard", "status": "Connected","user":current_user,"access":USER_DATA.get(current_user).get("access",[])}
+    data_context = {"title": "NER PBX Dashboard", "status": "Connected","user":current_user,"access":USER_DATA.get(current_user).get("access",[]),"server_ip":config.SERVER_IP}
     
     # 2. Render Main Page for 
     return templates.TemplateResponse(

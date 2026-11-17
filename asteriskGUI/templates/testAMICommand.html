@@ -17,13 +17,13 @@
                     <textarea id="ami-json-payload" rows="18" 
                         class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-mono text-emerald-400 focus:border-emerald-500/50 focus:outline-none transition-colors"
 >
-{
-  "dc":"N",
-  "command":{
-	 "Action": "conf_room_participants",
-	 "Param":{"confRoom":"105"}
-   }
-}
+            {
+            "dc":"N",
+            "command":{
+                "Action": "conf_room_participants",
+                "Param":{"confRoom":"105"}
+            }
+            }
 
 </textarea>
                 </div>
@@ -33,9 +33,18 @@
                     <button onclick="loadConsoleMacro('PJSIPShowEndpoints')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Endpoints</button>
                     <button onclick="loadConsoleMacro('ReloadPJSIP')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Reload PJSIP</button>
                     <button onclick="loadConsoleMacro('ReloadDialplan')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Reload Dialplan</button>
-                    <button onclick="loadConsoleMacro('CreateExtension')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Create Extension</button>
-                    <button onclick="loadConsoleMacro('CreateDialplan')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Create Dialplan</button>
-                    <button onclick="loadConsoleMacro('ReloadCORE')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Reload CORE</button>
+                    <!--
+                        <button onclick="loadConsoleMacro('CreateExtension')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Create Extension</button>
+                        <button onclick="loadConsoleMacro('CreateDialplan')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Create Dialplan</button>
+                        <button onclick="loadConsoleMacro('ReloadCORE')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Reload CORE</button>
+                    -->
+                    <button onclick="loadConsoleMacro('ReloadAsterisk')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Asterisk Reload</button>
+                    <button onclick="loadConsoleMacro('StatusAsterisk')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Asterisk Status</button>
+                    <button onclick="loadConsoleMacro('LogsAsterisk')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Asterisk Logs</button>
+                    <button onclick="loadConsoleMacro('ReloadKeepalive')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Keepalive Reload</button>
+                    <button onclick="loadConsoleMacro('StatusKeepalive')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Keepalive Status</button>
+                    <button onclick="loadConsoleMacro('LogsKeepalive')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Keepalive Logs</button>
+                    <button onclick="loadConsoleMacro('LogsDashboard')" class="px-2.5 py-1 text-xs bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 font-medium border border-slate-700/40">Dashboard Logs</button>
                     
                 </div>
 
@@ -57,15 +66,25 @@ Waiting for execution pipeline payload command packet...
 </div>
 
 <script>
+    const commands = ["reload_asterisk","reload_keepalived","status_asterisk","status_keepalived","logs_asterisk","logs_keepalived","logs_dashboardv1"]
     // Presets catalog macro utility loading handler
     function loadConsoleMacro(actionName) {
         const area = document.getElementById("ami-json-payload");
         if(actionName === 'ReloadPJSIP') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_pjsip",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'ReloadDialplan') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_dialplan",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'PJSIPShowEndpoints') area.value = '{ \n "dc":"Y",\n "command":{\n\t"Action": "PJSIPShowEndpoints",\n\t"ActionID": "check-all-endpoints-2"\n}\n}';
-		if(actionName === 'CreateExtension') area.value = '{\n"dc":"N",\n"command":{\n\t"Action": "create_extension",\n\t"Param":{\n\t\t "context-template":"exch-template",\n\t\t"extension":"",\n\t\t"callerid":"",\n\t\t"password": ""\n\t\t}\n\t}\n}';
-		if(actionName === 'CreateDialplan') area.value = '{\n\t"dc":"N",\n\t"command":{\n\t\t"Action": "create_dialplan",\n\t\t"Param":{\n\t\t"context":"exch",\n\t\t"extension":"66411" \n\t\t}\n\t}\n}';
-        if(actionName === 'ReloadCORE') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_core",\n\t "Param":{}\n\t}\n}';
+		//if(actionName === 'CreateExtension') area.value = '{\n"dc":"N",\n"command":{\n\t"Action": "create_extension",\n\t"Param":{\n\t\t "context-template":"exch-template",\n\t\t"extension":"",\n\t\t"callerid":"",\n\t\t"password": ""\n\t\t}\n\t}\n}';
+		//if(actionName === 'CreateDialplan') area.value = '{\n\t"dc":"N",\n\t"command":{\n\t\t"Action": "create_dialplan",\n\t\t"Param":{\n\t\t"context":"exch",\n\t\t"extension":"66411" \n\t\t}\n\t}\n}';
+        //if(actionName === 'ReloadCORE') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_core",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'ReloadAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_asterisk",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'StatusAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "status_asterisk",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'LogsAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "logs_asterisk",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10" }\n\t}\n}';
+        
+        if(actionName === 'ReloadKeepalive') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_keepalived",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'StatusKeepalive') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "status_keepalived",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'LogsKeepalive') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "logs_keepalived",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10"}\n\t}\n}';
+        
+        if(actionName === 'LogsDashboard') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "logs_dashboardv1",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10"}\n\t}\n}';
 		
     }
 
@@ -73,6 +92,7 @@ Waiting for execution pipeline payload command packet...
         const payloadArea = document.getElementById("ami-json-payload");
         const screen = document.getElementById("ami-terminal-response-screen");
         const btn = document.getElementById("console-submit-btn");
+        endpoint = "/execute-ami";
 
         let validatedJson;
         try {
@@ -81,11 +101,16 @@ Waiting for execution pipeline payload command packet...
             alert("Invalid JSON data format specified. Ensure standard formatting structures.");
             return;
         }
-
+        
+        // check action type
+        if(commands.includes(validatedJson.command.Action)){
+            endpoint = "/execute-script"
+            //endpoint = "/execute"
+        }
         screen.textContent = "Processing packet matrix... Transmitting over core network pipelines...";
         screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-amber-400 select-all whitespace-pre-wrap";
 
-        fetch("/execute-ami", {
+        fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ dc:validatedJson.dc, 
@@ -93,10 +118,14 @@ Waiting for execution pipeline payload command packet...
 								})
         .then(res => res.json())
         .then(data => {
-            screen.textContent = data.output;
+            
+            
             if(data.status === 'success') {
+                screen.textContent = data.output==""?"Command Executed Successfully :) ":data.output;
                 screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-emerald-400 select-all whitespace-pre-wrap";
+                
             } else {
+                screen.textContent = data.output==""?"Command Executed with Error !! ":data.output;
                 screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-red-400 select-all whitespace-pre-wrap";
             }
         })
