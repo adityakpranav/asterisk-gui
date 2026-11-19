@@ -28,6 +28,8 @@ ami_manager = Manager(
     secret="exch@63974"
 )
 
+
+
 # 1. Background worker to catch Asterisk events
 async def handle_call_events():
     @ami_manager.register_event('Newchannel')

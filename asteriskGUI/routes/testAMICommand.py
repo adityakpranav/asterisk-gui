@@ -4,21 +4,30 @@
 
 import asyncio
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Request
 from schemas import AMICommandRequest
 from asterisk_worker import ami_manager
 from amiCommandHelper import get_ami_command, execute_ami_command
 from .run_script import asterisk_restart , asterisk_status , keepalive_restart, keepalive_status, app_logs
+from logger import logger, log_info
+from config import TOKEN_USER
+
 
 # Ensure router is instantiated at top of file if not already
 router = APIRouter()
 
 @router.post("/execute-ami")
-async def execute_raw_ami_command(payload: AMICommandRequest):
+async def execute_raw_ami_command(payload: AMICommandRequest,request: Request):
     """
     Executes an ad-hoc custom AMI action payload directly against Asterisk.
     Returns the exact key-value string mapping returned by the core telephony engine.
     """
+    client_ip = getattr(request.state, "client_ip", "Unknown")
+    session_token = request.cookies.get("session_auth_token",None)
+    user = TOKEN_USER.get(session_token,None)
+    
+    logger.info(f"AMI A Triggered | IP: {client_ip} | User : {user} | Command: {payload.command}")
+        
     try:
         response = await execute_ami_command(payload)
         return (response)
@@ -27,11 +36,17 @@ async def execute_raw_ami_command(payload: AMICommandRequest):
         return {"status": "error", "output": f"Execution Error Exception Raised:\n{str(e)}"}
 
 @router.post("/execute-script")
-async def execute_raw_script_command(payload: AMICommandRequest):
+async def execute_raw_script_command(payload: AMICommandRequest,request: Request):
     """
     Executes an ad-hoc custom AMI action payload directly against Asterisk.
     Returns the exact key-value string mapping returned by the core telephony engine.
     """
+    #client_ip = getattr(request.state, "client_ip", "Unknown")
+    #session_token = request.cookies.get("session_auth_token",None)
+    #ser = TOKEN_USER.get(session_token,None)
+    #logger.info(f"AMI S Triggered | IP: {client_ip} | User : {user} | Command: {payload.command}")
+    log_info(payload,request)
+
     success, output = "",""
     try:
         if(payload.command["Action"]=="reload_asterisk"):

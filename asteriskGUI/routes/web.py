@@ -32,10 +32,12 @@ def get_current_user(request: Request):
 
     return login_User
 
+
 # Render Login view
 @router.get("/login", response_class=HTMLResponse)
 async def render_login_portal(request: Request):
     # If user is already authenticated, jump past the login view straight to console dashboard
+    
     try:
         if get_current_user(request):
             return RedirectResponse(url="/", status_code=303)

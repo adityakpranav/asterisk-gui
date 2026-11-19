@@ -66,17 +66,14 @@ Waiting for execution pipeline payload command packet...
 </div>
 
 <script>
-    const commands = ["reload_asterisk","reload_keepalived","status_asterisk","status_keepalived","logs_asterisk","logs_keepalived","logs_dashboardv1"]
+    const commands = ["reload_asterisk","reload_keepalived","status_asterisk"]//,"status_keepalived"]//,"logs_asterisk","logs_keepalived","logs_dashboardv1"]
     // Presets catalog macro utility loading handler
     function loadConsoleMacro(actionName) {
         const area = document.getElementById("ami-json-payload");
         if(actionName === 'ReloadPJSIP') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_pjsip",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'ReloadDialplan') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_dialplan",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'PJSIPShowEndpoints') area.value = '{ \n "dc":"Y",\n "command":{\n\t"Action": "PJSIPShowEndpoints",\n\t"ActionID": "check-all-endpoints-2"\n}\n}';
-		//if(actionName === 'CreateExtension') area.value = '{\n"dc":"N",\n"command":{\n\t"Action": "create_extension",\n\t"Param":{\n\t\t "context-template":"exch-template",\n\t\t"extension":"",\n\t\t"callerid":"",\n\t\t"password": ""\n\t\t}\n\t}\n}';
-		//if(actionName === 'CreateDialplan') area.value = '{\n\t"dc":"N",\n\t"command":{\n\t\t"Action": "create_dialplan",\n\t\t"Param":{\n\t\t"context":"exch",\n\t\t"extension":"66411" \n\t\t}\n\t}\n}';
-        //if(actionName === 'ReloadCORE') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_core",\n\t "Param":{}\n\t}\n}';
-        if(actionName === 'ReloadAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_asterisk",\n\t "Param":{}\n\t}\n}';
+		if(actionName === 'ReloadAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_asterisk",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'StatusAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "status_asterisk",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'LogsAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "logs_asterisk",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10" }\n\t}\n}';
         
@@ -92,8 +89,8 @@ Waiting for execution pipeline payload command packet...
         const payloadArea = document.getElementById("ami-json-payload");
         const screen = document.getElementById("ami-terminal-response-screen");
         const btn = document.getElementById("console-submit-btn");
-        endpoint = "/execute-ami";
-
+        let endpoint = "/execute-ami";
+        let page_reload=0;
         let validatedJson;
         try {
             validatedJson = JSON.parse(payloadArea.value);
@@ -106,7 +103,9 @@ Waiting for execution pipeline payload command packet...
         if(commands.includes(validatedJson.command.Action)){
             endpoint = "/execute-script"
             //endpoint = "/execute"
+            if(validatedJson.command.Action == "reload_keepalived"){page_reload=1;}
         }
+
         screen.textContent = "Processing packet matrix... Transmitting over core network pipelines...";
         screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-amber-400 select-all whitespace-pre-wrap";
 
@@ -134,6 +133,13 @@ Waiting for execution pipeline payload command packet...
             screen.textContent = "Critical communication loss. Server interface reached unreachable route boundary.";
             screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-red-500 select-all whitespace-pre-wrap";
         });
+        if(page_reload==1){
+            page_reload=0;
+            setTimeout(function() {
+                location.reload();
+                }, 5000);
+            
+        }
     }
 </script>
 

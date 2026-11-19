@@ -32,6 +32,7 @@ TOKEN_USER = {
     "authenticated_pbx_operator_token":"operator"
 }
 
+FILTER_URLS = ["/extensions-data"]
 
 #SERVER_DIR ="/home/exch" #added to this script Dynamically
 #SERVER_IP = '10.24.49.192'

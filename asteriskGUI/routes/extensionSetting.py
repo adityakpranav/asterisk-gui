@@ -4,17 +4,20 @@
 
 import asyncio
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Request
 from schemas import AMICommandRequest, ExtensionCreateRequest, ExtensionModifyRequest, ExtensionDeleteRequest
 from asterisk_worker import ami_manager
 from amiCommandHelper import get_ami_command
 from .syncCRUD import run_asterisk_sync 
+from logger import logger
+from config import TOKEN_USER
+
 # Ensure router is instantiated at top of file if not already
 router = APIRouter()
 
 # --- CREATE EXTENSION ---
 @router.post("/extension/create")
-async def create_new_extension(payload: ExtensionCreateRequest):
+async def create_new_extension(payload: ExtensionCreateRequest, request: Request):
     try:
         
         numStart = int(payload.numStart)
