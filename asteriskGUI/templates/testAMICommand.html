@@ -17,13 +17,13 @@
                     <textarea id="ami-json-payload" rows="18" 
                         class="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-sm font-mono text-emerald-400 focus:border-emerald-500/50 focus:outline-none transition-colors"
 >
-            {
-            "dc":"N",
-            "command":{
-                "Action": "conf_room_participants",
-                "Param":{"confRoom":"105"}
-            }
-            }
+{
+"dc":"N",
+"command":{
+    "Action": "conf_room_participants",
+    "Param":{"confRoom":"105"}
+}
+}
 
 </textarea>
                 </div>
@@ -66,22 +66,22 @@ Waiting for execution pipeline payload command packet...
 </div>
 
 <script>
-    const commands = ["reload_asterisk","reload_keepalived","status_asterisk","status_keepalived","logs_asterisk","logs_keepalived","logs_dashboardv1"]
+    //const commands = ["reload_asterisk","reload_keepalived","status_asterisk","status_keepalived","logs_asterisk","logs_keepalived","logs_dashboardv1"]
     // Presets catalog macro utility loading handler
     function loadConsoleMacro(actionName) {
         const area = document.getElementById("ami-json-payload");
         if(actionName === 'ReloadPJSIP') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_pjsip",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'ReloadDialplan') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_dialplan",\n\t "Param":{}\n\t}\n}';
         if(actionName === 'PJSIPShowEndpoints') area.value = '{ \n "dc":"Y",\n "command":{\n\t"Action": "PJSIPShowEndpoints",\n\t"ActionID": "check-all-endpoints-2"\n}\n}';
-		if(actionName === 'ReloadAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_asterisk",\n\t "Param":{}\n\t}\n}';
-        if(actionName === 'StatusAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "status_asterisk",\n\t "Param":{}\n\t}\n}';
-        if(actionName === 'LogsAsterisk') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "logs_asterisk",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10" }\n\t}\n}';
+		if(actionName === 'ReloadAsterisk') area.value = '{\n"dc":"L",\n"command":{\n\t "Action": "reload_asterisk",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'StatusAsterisk') area.value = '{\n"dc":"L",\n"command":{\n\t "Action": "status_asterisk",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'LogsAsterisk') area.value = '{\n"dc":"L",\n"command":{\n\t "Action": "logs_asterisk",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10" }\n\t}\n}';
         
-        if(actionName === 'ReloadKeepalive') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "reload_keepalived",\n\t "Param":{}\n\t}\n}';
-        if(actionName === 'StatusKeepalive') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "status_keepalived",\n\t "Param":{}\n\t}\n}';
-        if(actionName === 'LogsKeepalive') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "logs_keepalived",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10"}\n\t}\n}';
+        if(actionName === 'ReloadKeepalive') area.value = '{\n"dc":"L",\n"command":{\n\t "Action": "reload_keepalived",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'StatusKeepalive') area.value = '{\n"dc":"L",\n"command":{\n\t "Action": "status_keepalived",\n\t "Param":{}\n\t}\n}';
+        if(actionName === 'LogsKeepalive') area.value = '{\n"dc":"L",\n"command":{\n\t "Action": "logs_keepalived",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10"}\n\t}\n}';
         
-        if(actionName === 'LogsDashboard') area.value = '{\n"dc":"N",\n"command":{\n\t "Action": "logs_dashboardv1",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10"}\n\t}\n}';
+        if(actionName === 'LogsDashboard') area.value = '{\n"dc":"L",\n"command":{\n\t "Action": "tail_logger",\n\t "Param":{\n\t\t "Option":"-n", \n\t\t "Value":"10", \n\t\t "Search":""}\n\t}\n}';
 		
     }
 
@@ -100,7 +100,7 @@ Waiting for execution pipeline payload command packet...
         }
         
         // check action type
-        if(commands.includes(validatedJson.command.Action)){
+        if(validatedJson.dc == "L"){
             endpoint = "/execute-script"
             //endpoint = "/execute"
             if(validatedJson.command.Action == "reload_keepalived"){page_reload=1;}
@@ -119,12 +119,12 @@ Waiting for execution pipeline payload command packet...
         .then(data => {
             
             
-            if(data.status === 'success') {
+            if(data.status) {
                 screen.textContent = data.output==""?"Command Executed Successfully :) ":data.output;
                 screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-emerald-400 select-all whitespace-pre-wrap";
                 
             } else {
-                screen.textContent = data.output==""?"Command Executed with Error !! ":data.output;
+                screen.textContent = data.raw_output==""?"Command Executed with Error !! ":data.output;
                 screen.className = "w-full h-[480px] bg-slate-950 border border-slate-900 rounded-xl p-4 overflow-y-auto font-mono text-xs text-red-400 select-all whitespace-pre-wrap";
             }
         })

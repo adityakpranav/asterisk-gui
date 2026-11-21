@@ -5,7 +5,8 @@ from logging.handlers import RotatingFileHandler
 from config import SERVER_DIR, TOKEN_USER, FILTER_URLS
 # Create logs directory if it doesn't exist
 
-LOG_DIR = os.path.join("/home/exch/asteriskGUI","Logs")
+#LOG_DIR = os.path.join("/home/exch/asteriskGUI","Logs")
+LOG_DIR = os.path.join(SERVER_DIR,"asteriskGUI","Logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, "api.log")
 
@@ -84,7 +85,7 @@ def log_info(payload,request):
         session_token = request.cookies.get("session_auth_token",None)
         user = TOKEN_USER.get(session_token,None)
         
-        logger.info(f"AMI A Triggered | IP: {client_ip} | User : {user} | Command: {payload.command}")
+        logger.info(f"URL: {request.url.path} | IP: {client_ip} | User : {user} | Command: {payload.command}")
         
 
 logger = setup_logger()

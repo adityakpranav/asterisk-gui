@@ -8,9 +8,9 @@ from fastapi import APIRouter, Request
 from schemas import AMICommandRequest
 from asterisk_worker import ami_manager
 from amiCommandHelper import get_ami_command, execute_ami_command
-from .run_script import asterisk_restart , asterisk_status , keepalive_restart, keepalive_status, app_logs
+from .run_script import asterisk_restart , asterisk_status , keepalive_restart, keepalive_status, app_logs,tail_logs
 from logger import logger, log_info
-from config import TOKEN_USER
+from config import TOKEN_USER, LOG_FILE_PATH
 
 
 # Ensure router is instantiated at top of file if not already
@@ -22,12 +22,7 @@ async def execute_raw_ami_command(payload: AMICommandRequest,request: Request):
     Executes an ad-hoc custom AMI action payload directly against Asterisk.
     Returns the exact key-value string mapping returned by the core telephony engine.
     """
-    client_ip = getattr(request.state, "client_ip", "Unknown")
-    session_token = request.cookies.get("session_auth_token",None)
-    user = TOKEN_USER.get(session_token,None)
-    
-    logger.info(f"AMI A Triggered | IP: {client_ip} | User : {user} | Command: {payload.command}")
-        
+    log_info(payload,request)
     try:
         response = await execute_ami_command(payload)
         return (response)
@@ -47,25 +42,28 @@ async def execute_raw_script_command(payload: AMICommandRequest,request: Request
     #logger.info(f"AMI S Triggered | IP: {client_ip} | User : {user} | Command: {payload.command}")
     log_info(payload,request)
 
-    success, output = "",""
+    returncode, output = "",""
     try:
         if(payload.command["Action"]=="reload_asterisk"):
-            success, output = await asterisk_restart()
+            returncode, output, error  = await asterisk_restart()
 
         elif(payload.command["Action"]=="status_asterisk"):
-            success, output = await asterisk_status()
+            returncode, output, error  = await asterisk_status()
 
         elif(payload.command["Action"]=="reload_keepalived"):
-            success, output = await keepalive_restart()
+            returncode, output, error  = await keepalive_restart()
 
         elif(payload.command["Action"]=="status_keepalived"):
-            success, output = await keepalive_status()
-
+            returncode, output, error  = await keepalive_status()
+        
+        elif("tail" in payload.command["Action"]):
+            returncode, output, error = await tail_logs(LOG_FILE_PATH[payload.command["Action"].split("_")[1]],payload.command["Param"]["Option"],payload.command["Param"]["Value"],payload.command["Param"]["Search"])
+        
         elif("logs" in payload.command["Action"]):
-            success, output = await app_logs(payload.command["Action"].split("_")[1],payload.command["Param"]["Option"],payload.command["Param"]["Value"])
+            returncode, output, error  = await app_logs(payload.command["Action"].split("_")[1],payload.command["Param"]["Option"],payload.command["Param"]["Value"])
 
 
-        return {"status": "success", "raw_output": success, "output":output}
+        return {"status":returncode, "raw_output": error, "output":output}
     except Exception as e:
         print(f"script command execution failed: {e}")
         return {"status": "error", "output": f"Execution Error Exception Raised:\n{str(e)}"}

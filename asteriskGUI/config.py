@@ -34,5 +34,9 @@ TOKEN_USER = {
 
 FILTER_URLS = ["/extensions-data"]
 
+
 #SERVER_DIR ="/home/exch" #added to this script Dynamically
 #SERVER_IP = '10.24.49.192'
+
+LOG_FILE_PATH = {"logger":os.path.join(SERVER_DIR,"asteriskGUI","Logs/api.log"),
+                 "cdr":"/var/log/asterisk/cdr-csv/Master.csv"}
